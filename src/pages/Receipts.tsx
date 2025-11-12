@@ -52,10 +52,10 @@ export default function Receipts() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Receipts</h1>
-          <p className="text-muted-foreground">Track payment receipts</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Receipts</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Track payment receipts</p>
         </div>
         <Button>
           <Plus className="h-4 w-4 mr-2" />
@@ -81,45 +81,47 @@ export default function Receipts() {
             </div>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Receipt #</TableHead>
-                <TableHead>Invoice #</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Payment Date</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Payment Method</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredReceipts.map((receipt) => (
-                <TableRow key={receipt.id}>
-                  <TableCell className="font-medium">{receipt.receiptNumber}</TableCell>
-                  <TableCell>{receipt.invoiceNumber}</TableCell>
-                  <TableCell>{receipt.customerName}</TableCell>
-                  <TableCell>{receipt.paymentDate}</TableCell>
-                  <TableCell>{formatCurrency(receipt.amount)}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="capitalize">
-                      {receipt.paymentMethod.replace("_", " ")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDownloadPDF(receipt)}>
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Receipt #</TableHead>
+                  <TableHead className="hidden md:table-cell">Invoice #</TableHead>
+                  <TableHead className="hidden lg:table-cell">Customer</TableHead>
+                  <TableHead className="hidden sm:table-cell">Payment Date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead className="hidden md:table-cell">Payment Method</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredReceipts.map((receipt) => (
+                  <TableRow key={receipt.id}>
+                    <TableCell className="font-medium">{receipt.receiptNumber}</TableCell>
+                    <TableCell className="hidden md:table-cell">{receipt.invoiceNumber}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{receipt.customerName}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{receipt.paymentDate}</TableCell>
+                    <TableCell>{formatCurrency(receipt.amount)}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <Badge variant="secondary" className="capitalize">
+                        {receipt.paymentMethod.replace("_", " ")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hidden sm:flex" onClick={() => handleDownloadPDF(receipt)}>
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

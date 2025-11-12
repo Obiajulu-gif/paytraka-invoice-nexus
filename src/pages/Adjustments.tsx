@@ -39,8 +39,8 @@ export default function Adjustments() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Credit & Debit Notes</h1>
-        <p className="text-muted-foreground">Manage invoice adjustments</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Credit & Debit Notes</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Manage invoice adjustments</p>
       </div>
 
       <Tabs defaultValue="credit" className="space-y-4">
@@ -62,35 +62,36 @@ export default function Adjustments() {
               </Button>
             </CardHeader>
             <CardContent>
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Credit Note #</TableHead>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Credit Note #</TableHead>
+                  <TableHead className="hidden md:table-cell">Invoice #</TableHead>
+                  <TableHead className="hidden lg:table-cell">Customer</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead className="hidden md:table-cell">Reason</TableHead>
+                  <TableHead className="hidden sm:table-cell">Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {creditNotes.map((note) => (
                     <TableRow key={note.id}>
                       <TableCell className="font-medium">{note.creditNoteNumber}</TableCell>
-                      <TableCell>{note.invoiceNumber}</TableCell>
-                      <TableCell>{note.customerName}</TableCell>
-                      <TableCell>{note.date}</TableCell>
+                      <TableCell className="hidden md:table-cell">{note.invoiceNumber}</TableCell>
+                      <TableCell className="hidden lg:table-cell">{note.customerName}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{note.date}</TableCell>
                       <TableCell>{formatCurrency(note.amount)}</TableCell>
-                      <TableCell className="max-w-xs truncate">{note.reason}</TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell max-w-xs truncate">{note.reason}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Badge variant={note.status === "issued" ? "default" : "secondary"} className="capitalize">
                           {note.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -98,6 +99,7 @@ export default function Adjustments() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -115,35 +117,36 @@ export default function Adjustments() {
               </Button>
             </CardHeader>
             <CardContent>
-              <Table>
+              <div className="overflow-x-auto">
+                <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Debit Note #</TableHead>
-                    <TableHead>Invoice #</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Debit Note #</TableHead>
+                  <TableHead className="hidden md:table-cell">Invoice #</TableHead>
+                  <TableHead className="hidden lg:table-cell">Customer</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead className="hidden md:table-cell">Reason</TableHead>
+                  <TableHead className="hidden sm:table-cell">Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {debitNotes.map((note) => (
                     <TableRow key={note.id}>
                       <TableCell className="font-medium">{note.debitNoteNumber}</TableCell>
-                      <TableCell>{note.invoiceNumber}</TableCell>
-                      <TableCell>{note.customerName}</TableCell>
-                      <TableCell>{note.date}</TableCell>
+                      <TableCell className="hidden md:table-cell">{note.invoiceNumber}</TableCell>
+                      <TableCell className="hidden lg:table-cell">{note.customerName}</TableCell>
+                      <TableCell className="hidden sm:table-cell">{note.date}</TableCell>
                       <TableCell>{formatCurrency(note.amount)}</TableCell>
-                      <TableCell className="max-w-xs truncate">{note.reason}</TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell max-w-xs truncate">{note.reason}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Badge variant={note.status === "issued" ? "default" : "secondary"} className="capitalize">
                           {note.status}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
@@ -151,6 +154,7 @@ export default function Adjustments() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

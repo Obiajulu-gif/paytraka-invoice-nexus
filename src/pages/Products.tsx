@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { getProducts, deleteProduct } from "@/services/productsService";
 import type { Product } from "@/services/productsService";
+import { ProductDialog } from "@/components/ProductDialog";
 import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/utils/currency";
 import { toast } from "sonner";
@@ -14,6 +15,8 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
 
   useEffect(() => {
     loadProducts();
@@ -36,12 +39,27 @@ export default function Products() {
     
     try {
       await deleteProduct(id);
-      toast.success("Product/Service deleted successfully");
+      toast.success("Product/service deleted successfully");
       loadProducts();
     } catch (error) {
       console.error("Error deleting product:", error);
       toast.error("Failed to delete product/service");
     }
+  };
+
+  const handleEdit = (product: Product) => {
+    setEditingProduct(product);
+    setDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setEditingProduct(undefined);
+    setDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    setEditingProduct(undefined);
   };
 
   const filteredProducts = products.filter((product) =>
@@ -54,17 +72,19 @@ export default function Products() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Products & Services</h1>
-          <p className="text-muted-foreground">Manage your product and service catalog</p>
+    <>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Products & Services</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">Manage your product and service catalog</p>
+          </div>
+          <Button onClick={handleAddNew}>
+            <Plus className="h-4 w-4 mr-2" />
+            <span className="hidden sm:inline">Add Product/Service</span>
+            <span className="sm:hidden">Add</span>
+          </Button>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Product/Service
-        </Button>
-      </div>
 
       <Card>
         <CardHeader>
@@ -84,47 +104,55 @@ export default function Products() {
             </div>
           </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Tax Rate</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="max-w-xs truncate">{product.description}</TableCell>
-                  <TableCell>
-                    <Badge variant={product.type === "product" ? "default" : "secondary"}>
-                      {product.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatCurrency(product.price)}</TableCell>
-                  <TableCell>{product.taxRate}%</TableCell>
-                  <TableCell>{product.sku || "—"}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(product.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="hidden sm:table-cell">Type</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead className="hidden md:table-cell">Tax Rate</TableHead>
+                  <TableHead className="hidden lg:table-cell">SKU</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredProducts.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell className="font-medium">{product.name}</TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge variant={product.type === "product" ? "default" : "secondary"} className="capitalize">
+                        {product.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{formatCurrency(product.price)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{product.taxRate}%</TableCell>
+                    <TableCell className="hidden lg:table-cell">{product.sku || "—"}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(product)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => handleDelete(product.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+
+      <ProductDialog
+        open={dialogOpen}
+        onOpenChange={handleDialogClose}
+        product={editingProduct}
+        onSuccess={loadProducts}
+      />
+    </>
   );
 }
