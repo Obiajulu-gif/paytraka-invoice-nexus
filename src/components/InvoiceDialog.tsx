@@ -133,7 +133,7 @@ export function InvoiceDialog({
   const updateLineItem = (
     index: number,
     field: keyof InvoiceItem,
-    value: any
+    value: InvoiceItem[keyof InvoiceItem]
   ) => {
     const updated = [...lineItems];
     updated[index] = { ...updated[index], [field]: value };

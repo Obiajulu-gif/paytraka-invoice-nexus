@@ -177,7 +177,6 @@ const updateLinkedInvoice = async (invoiceId: string) => {
     newStatus = "paid";
   } else if (totalPaid > 0) {
     newStatus = "sent"; // partial
-  } else {
   }
 
   await updateInvoice(invoiceId, { status: newStatus });

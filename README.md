@@ -1,366 +1,213 @@
-# Paytraka Invoice Nexus
+# PayTraka Invoice Nexus
 
-Paytraka Invoice Nexus is a React-based invoicing dashboard for creating and managing customers, products/services, invoices, receipts, credit notes, debit notes, business settings, and basic revenue reports for Nigerian SMEs.
+PayTraka is a smart invoicing and billing workspace for Nigerian SMEs. It supports mock login, dashboard metrics, customers, products/services, invoices, receipts, credit/debit notes, reports, and business settings.
 
-The app is presented as a FIRS-compliant invoicing platform in the UI and metadata. In the current codebase, most business data is mocked in the frontend and there is no connected production backend, database, or real PDF generation service.
-
-## What the Project Does
-
-This project provides a browser-based invoicing workspace where a user can:
-
-- Sign in with fixed demo credentials.
-- Manage customer records.
-- Manage product and service catalog items.
-- Create invoices with line items, taxes, discounts, delivery fees, and totals.
-- Create receipts linked to unpaid invoices.
-- Track invoice status changes after payments.
-- Create credit notes and debit notes for invoice adjustments.
-- View dashboard and report charts based on invoice data.
-- Save business profile, invoice defaults, logo, and tax settings in the browser.
-- View invoice, receipt, credit note, and debit note dialogs with QR code imagery and FIRS footer messaging.
-
-## Key Features
-
-- Protected application layout with login/logout flow.
-- Responsive sidebar navigation.
-- Customer CRUD operations.
-- Product/service CRUD operations.
-- Invoice creation with calculated subtotal, tax, discount, delivery fee, and total.
-- Receipt creation linked to invoices.
-- Automatic invoice status update to `paid` when receipts cover the invoice total.
-- Credit note and debit note creation.
-- Dashboard cards and charts powered by Recharts.
-- Reports page with revenue trend, invoice status summary, and top customers.
-- Business settings page with logo upload using browser `FileReader`.
-- Nigerian Naira currency formatting.
-- shadcn/ui component structure with Radix UI primitives and Tailwind CSS.
+This repository has been migrated from React + TypeScript + Vite to a Next.js App Router application. The current app is still frontend/mock-data based; it does not yet include a production backend, database, payment gateway, real PDF generation service, or live FIRS e-invoicing integration.
 
 ## Tech Stack
 
 | Area | Technology |
 | --- | --- |
-| Runtime/build tool | Vite |
-| UI framework | React 18 |
-| Language | TypeScript |
-| Routing | React Router DOM |
-| Server state utility | TanStack React Query |
+| Framework | Next.js 15 App Router |
+| UI | React 18, TypeScript |
 | Styling | Tailwind CSS |
-| UI components | shadcn/ui-style components, Radix UI primitives |
-| Icons | Lucide React |
+| Components | shadcn/ui-style components, Radix UI |
 | Charts | Recharts |
-| Forms/utilities | React Hook Form, Zod, date-fns |
-| Notifications | Sonner and local toast components |
-| Linting | ESLint 9 with TypeScript ESLint |
+| Icons | Lucide React |
+| Forms | React Hook Form, Zod |
+| Mock state | In-memory services and browser `localStorage` |
 
-## Project Structure
+Next.js 15 is used because the local environment is running Node.js 18.19.1. Current Next.js 16 releases require a newer Node.js runtime.
 
-```text
-.
-+-- public/
-|   +-- placeholder.svg
-|   +-- robots.txt
-+-- src/
-|   +-- components/
-|   |   +-- ui/                    # Reusable UI primitives
-|   |   +-- AppSidebar.tsx         # Main sidebar navigation
-|   |   +-- Layout.tsx             # Auth-protected app shell
-|   |   +-- *Dialog.tsx            # Create/view dialogs for app entities
-|   |   +-- NavLink.tsx
-|   +-- hooks/                     # Toast and mobile helpers
-|   +-- lib/
-|   |   +-- utils.ts               # Shared className utility
-|   +-- pages/
-|   |   +-- Dashboard.tsx
-|   |   +-- Customers.tsx
-|   |   +-- Products.tsx
-|   |   +-- Invoices.tsx
-|   |   +-- Receipts.tsx
-|   |   +-- Adjustments.tsx
-|   |   +-- Reports.tsx
-|   |   +-- Settings.tsx
-|   |   +-- Login.tsx
-|   |   +-- NotFound.tsx
-|   +-- services/                  # Mock data/auth/settings/report services
-|   +-- utils/
-|   |   +-- currency.ts
-|   |   +-- pdfGenerator.ts
-|   +-- App.tsx                    # App providers and route definitions
-|   +-- main.tsx                   # React entry point
-|   +-- index.css                  # Tailwind and CSS variables
-+-- components.json                # shadcn/ui configuration
-+-- eslint.config.js
-+-- package.json
-+-- tailwind.config.ts
-+-- tsconfig*.json
-+-- vite.config.ts
-```
+## Getting Started
 
-## Installation and Setup
-
-### Prerequisites
-
-- Node.js 18 or newer is recommended for Vite 5.
-- npm, or another package manager compatible with the project.
-
-This repository includes both `package-lock.json` and `bun.lockb`. Because `package-lock.json` is present and the scripts are npm-compatible, the examples below use npm.
-
-### Install Dependencies
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-## Environment Variables
-
-No required environment variables were found in the current codebase. There are no references to `import.meta.env`, `process.env`, or `VITE_*` variables in the source files.
-
-If a backend is added later, create a `.env.local` file and expose frontend variables with the `VITE_` prefix, for example:
-
-```bash
-VITE_API_BASE_URL=http://localhost:3000
-```
-
-This example is not currently used by the application.
-
-## Running Locally
-
-Start the Vite development server:
+Run the development server:
 
 ```bash
 npm run dev
 ```
 
-The Vite config sets the dev server to:
+Build for production:
 
-```text
-http://localhost:8080
+```bash
+npm run build
 ```
 
-If accessing from another device on the same network, Vite is configured with `host: "::"`.
+Start a production build:
 
-### Demo Login
+```bash
+npm run start
+```
 
-The current authentication service uses fixed frontend-only credentials:
+The app normally starts at:
+
+```text
+http://localhost:3000
+```
+
+If port `3000` is already in use, Next.js will choose the next available port.
+
+## Demo Login
+
+The mock authentication service uses fixed frontend-only credentials:
 
 | Field | Value |
 | --- | --- |
 | Email | `admin@paytraka.com` |
 | Password | `123456` |
 
-Authentication state is saved in `localStorage` under `paytraka_user`.
+Authentication state is stored in `localStorage` under `paytraka_user`.
 
-## Available Scripts
+## Routes
 
-| Script | Description |
+| Route | Screen |
 | --- | --- |
-| `npm run dev` | Starts the Vite development server. |
-| `npm run build` | Builds the production app into `dist/`. |
-| `npm run build:dev` | Builds the app using Vite development mode. |
-| `npm run lint` | Runs ESLint across the project. |
-| `npm run preview` | Serves the built `dist/` output locally for preview. |
+| `/` | Redirects to `/dashboard` |
+| `/login` | Login |
+| `/dashboard` | Dashboard |
+| `/customers` | Customers |
+| `/products` | Products & Services |
+| `/invoices` | Invoices |
+| `/receipts` | Receipts |
+| `/adjustments` | Credit & Debit Notes |
+| `/reports` | Reports |
+| `/settings` | Settings |
 
-## Application Routes
+Protected routes are grouped under the Next.js App Router layout in `src/app/(app)/layout.tsx`. The existing client-side auth guard is preserved and redirects unauthenticated users to `/login`.
 
-The frontend routes are defined in `src/App.tsx`.
+## Project Structure
 
-| Route | Page | Description |
-| --- | --- | --- |
-| `/login` | Login | Public login screen. |
-| `/` | Dashboard | Revenue, invoice status, and top customer overview. |
-| `/customers` | Customers | Customer listing, search, create, edit, and delete. |
-| `/products` | Products & Services | Catalog listing, search, create, edit, and delete. |
-| `/invoices` | Invoices | Invoice listing, search, create, view, PDF placeholder, and delete. |
-| `/receipts` | Receipts | Receipt listing, search, create, PDF placeholder, and delete. |
-| `/adjustments` | Credit & Debit Notes | Credit note and debit note tabs with creation and view dialogs. |
-| `/reports` | Reports | Revenue trend, invoice status summary, and top customer charts. |
-| `/settings` | Settings | Business information, invoice defaults, logo, and tax information. |
-| `*` | NotFound | 404 fallback inside the protected layout. |
+```text
+src/
+  app/
+    layout.tsx              # Root Next.js layout and metadata
+    providers.tsx           # Client providers for Query, toasts, tooltips
+    globals.css             # Tailwind and app CSS variables
+    page.tsx                # Redirects / to /dashboard
+    login/page.tsx
+    (app)/
+      layout.tsx            # Auth-protected app shell
+      dashboard/page.tsx
+      customers/page.tsx
+      products/page.tsx
+      invoices/page.tsx
+      receipts/page.tsx
+      adjustments/page.tsx
+      reports/page.tsx
+      settings/page.tsx
+  components/
+    ui/                     # shadcn/ui-style primitives
+    AppSidebar.tsx
+    Layout.tsx
+    NavLink.tsx
+    *Dialog.tsx
+  screens/                  # Migrated client screens from the old Vite pages
+  services/                 # Mock auth/data/settings/report services
+  hooks/
+  lib/
+  utils/
+```
 
-All routes except `/login` are wrapped by `Layout`, which redirects unauthenticated users to `/login`.
+## Current Data Behavior
 
-## API Endpoints
-
-There are no active HTTP API calls in the current implementation.
-
-The service files contain TODO comments showing intended future endpoints, but these are examples only and are not currently implemented:
-
-| Entity | Example future endpoint from comments |
-| --- | --- |
-| Customers | `/api/customers`, `/api/customers/:id` |
-| Products | `/api/products`, `/api/products/:id` |
-| Invoices | `/api/invoices`, `/api/invoices/:id` |
-| Receipts | `/api/receipts` |
-| Credit notes | `/api/credit-notes` |
-| Debit notes | `/api/debit-notes` |
-| Reports | `/api/reports/revenue`, `/api/reports/invoice-status`, `/api/reports/top-customers` |
-
-External assets/services used in the UI:
-
-- QR code images are loaded from `https://api.qrserver.com/v1/create-qr-code/` in document view dialogs.
-- FIRS logo/favicon assets are loaded from `https://einvoice.firs.gov.ng/`.
-
-## Data Storage and Database Setup
-
-No database setup is required for the current codebase.
-
-Current storage behavior:
+No database setup is required for the current app.
 
 | Data | Current storage |
 | --- | --- |
 | Authenticated user | Browser `localStorage` key `paytraka_user` |
 | Business settings | Browser `localStorage` key `paytraka_settings` |
-| Uploaded logo | Base64 data URL stored as part of `paytraka_settings` |
+| Uploaded logo | Base64 data URL inside `paytraka_settings` |
 | Customers | In-memory array in `customersService.ts` |
 | Products/services | In-memory array in `productsService.ts` |
-| Invoices | In-memory exported array in `invoicesService.ts` |
+| Invoices | In-memory array in `invoicesService.ts` |
 | Receipts | In-memory array in `receiptsService.ts` |
 | Credit/debit notes | In-memory arrays in `adjustmentsService.ts` |
-| Reports | Calculated from the in-memory invoice array |
+| Reports | Calculated from in-memory invoice data |
 
-Because most records are stored in module-level arrays, they are not persisted to a database and may reset when the browser reloads or the app is restarted.
+Because most records are module-level arrays, business records may reset when the app reloads or restarts. Settings and mock auth persist in the browser.
 
-## Authentication and Authorization Flow
+## Future Production Architecture
 
-Authentication is implemented in `src/services/authService.ts`.
+A production PayTraka backend should use MySQL as the source of truth and Redis only for supporting infrastructure.
 
-1. The user submits email and password on `/login`.
-2. `login(email, password)` checks the values against fixed credentials.
-3. On success, a mock user is saved to `localStorage`.
-4. `Layout` calls `isAuthenticated()` on protected routes.
-5. If no user exists in `localStorage`, the app redirects to `/login`.
-6. Logout removes `paytraka_user` from `localStorage` and redirects to `/login`.
+Recommended shape:
 
-There is no role-based authorization, token validation, password hashing, server session, or backend identity provider in the current implementation.
+| Layer | Responsibility |
+| --- | --- |
+| Next.js App Router | UI, route layouts, metadata, server actions or route handlers where appropriate |
+| API layer | Authenticated invoice, receipt, customer, product, adjustment, and report operations |
+| MySQL | Durable source of truth for tenants, users, customers, products, invoices, receipts, adjustments, document numbers, audit logs, and settings |
+| Redis | Rate limiting, short-lived cache, idempotency locks, queues, and background job coordination |
+| Worker process | Email sending, PDF generation, FIRS submission/retry workflows, report precomputation |
+| Object storage | Generated PDFs, uploaded logos, and document attachments |
 
-## Important Business Logic
+Key backend requirements before replacing mock state:
 
-### Invoice totals
+- Use tenant-scoped authorization on every read and write.
+- Generate invoice, receipt, credit note, and debit note numbers inside database transactions.
+- Use row locks or a dedicated numbering table to prevent duplicate document numbers under concurrency.
+- Treat receipts, invoice status changes, credit notes, and debit notes as transactional accounting workflows.
+- Keep Redis out of the source-of-truth path; cache can be rebuilt from MySQL.
+- Add idempotency keys for payment callbacks, receipt creation, PDF generation, and FIRS submission.
+- Store immutable audit events for financial documents.
+- Add integration tests around document numbering, partial payments, overpayment prevention, receipt deletion, and adjustment totals.
 
-Invoice totals are calculated in `InvoiceDialog`:
+## Environment Variables
+
+The current mock frontend does not require environment variables.
+
+For future browser-exposed values in Next.js, use the `NEXT_PUBLIC_` prefix:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3000
+```
+
+Do not expose secrets with `NEXT_PUBLIC_`.
+
+## Available Scripts
+
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Starts the Next.js development server |
+| `npm run build` | Runs a production Next.js build |
+| `npm run start` | Starts the production Next.js server |
+| `npm run lint` | Runs ESLint over the source files |
+| `npm run typecheck` | Runs TypeScript without emitting files |
+
+## Verification Notes
+
+The migration was verified with:
+
+- Dependency install from a clean lockfile.
+- TypeScript checking.
+- Production Next.js build.
+- Dev server startup.
+- Route smoke checks for `/`, `/login`, `/dashboard`, `/customers`, `/products`, `/invoices`, `/receipts`, `/adjustments`, `/reports`, and `/settings`.
+
+In the WSL 1 shell used during migration, the Windows npm shim intermittently failed with:
 
 ```text
-subtotal = sum(line item quantity * unit price)
-tax = sum(line item total * tax rate / 100)
-total = subtotal + tax - discount + delivery fee
+WSL 1 is not supported. Please upgrade to WSL 2 or above.
+Could not determine Node.js install directory
 ```
 
-### Invoice numbering
+The underlying Next.js build and dev commands were verified through the Windows `.cmd` wrappers from the repository directory.
 
-Invoices are assigned numbers in this format:
+## Known Limitations
 
-```text
-INV-2024-001
-```
-
-The numeric suffix is based on the current in-memory invoice count.
-
-### Receipt numbering
-
-Receipts are assigned numbers in this format:
-
-```text
-RCP-<current-year>-001
-```
-
-### Receipt-to-invoice status update
-
-When a receipt is created, updated, or deleted, `receiptsService.ts` recalculates total paid for the linked invoice:
-
-- If total paid is greater than or equal to invoice total, invoice status becomes `paid`.
-- If total paid is greater than `0` but less than invoice total, invoice status remains or becomes `sent`.
-
-### Reports
-
-Reports are calculated from `mockInvoices` in `reportsService.ts`:
-
-- Total revenue
-- Paid revenue
-- Unpaid revenue
-- Monthly revenue
-- Invoice status count
-- Top customers by invoiced amount
-
-## PDF and QR Code Behavior
-
-`src/utils/pdfGenerator.ts` is currently a mock utility. Calling PDF generation logs to the console and shows an alert instead of downloading a real PDF.
-
-Document view dialogs display QR codes through an external QR code image URL. Real PDF generation is listed as a TODO in the code, with suggested libraries such as jsPDF or PDFKit.
-
-## Deployment
-
-This is a static Vite frontend app. To create a production build:
-
-```bash
-npm run build
-```
-
-Preview the production build locally:
-
-```bash
-npm run preview
-```
-
-Deploy the generated `dist/` folder to any static hosting provider, such as:
-
-- Vercel
-- Netlify
-- Cloudflare Pages
-- GitHub Pages
-- Nginx or Apache static hosting
-
-For single-page app routing, configure your host to serve `index.html` for unknown routes. Without this rewrite, refreshing a nested route such as `/invoices` may return a 404 from the hosting provider.
-
-## Contribution Guidelines
-
-1. Fork or branch from the main project branch.
-2. Install dependencies with `npm install`.
-3. Create focused changes that match the existing React, TypeScript, Tailwind, and shadcn/ui patterns.
-4. Run linting before submitting:
-
-```bash
-npm run lint
-```
-
-5. Build the app before opening a pull request:
-
-```bash
-npm run build
-```
-
-6. Keep mock service changes clearly separated from any future backend integration.
-7. Do not commit secrets, credentials, `.env.local`, or generated build artifacts.
-
-## Common Errors and Troubleshooting
-
-| Problem | Possible cause | Fix |
-| --- | --- | --- |
-| Login fails | Wrong fixed demo credentials | Use `admin@paytraka.com` and `123456`. |
-| App redirects to `/login` | No `paytraka_user` entry in `localStorage` | Log in again. |
-| Records disappear after refresh | Most entity data is stored in in-memory arrays | This is expected until a real backend/database is added. |
-| Settings persist but invoices do not | Settings use `localStorage`; invoices use in-memory arrays | Add persistent storage or backend APIs for invoice data. |
-| PDF download does not happen | PDF generation is currently mocked | Implement real generation in `src/utils/pdfGenerator.ts`. |
-| QR codes or FIRS images do not load | Browser cannot reach external image hosts | Check network access to `api.qrserver.com` and `einvoice.firs.gov.ng`. |
-| Refreshing `/customers` or another nested route fails after deployment | Static host is not configured for SPA fallback | Configure rewrites to serve `index.html`. |
-| Dashboard/report values show zero or empty charts | No invoices exist in the in-memory invoice array | Create invoices in the current app session. |
-| `npm run lint` reports errors | Existing TypeScript/ESLint issues are present in the source code | Fix the reported lint issues before treating lint as a passing CI check. |
-
-## Notes / Assumptions
-
-- No real backend API implementation was found.
-- No database schema, migration files, ORM config, or database client was found.
-- No required environment variables were found.
-- No test framework or test scripts were found.
-- No license file was found.
-- No maintainer contact information was found.
-- The package name in `package.json` is currently `vite_react_shadcn_ts`, while the app branding and HTML metadata use Paytraka.
-- Some older invoice statuses such as `draft`, `overdue`, and `cancelled` are still referenced in parts of the UI, but the active invoice service currently types invoice status as `sent` or `paid`.
-- The UI claims FIRS-compliant output, but actual compliance validation, FIRS integration, and production-grade PDF generation were not confirmed in the codebase.
-- At the time this README was created, `npm run build` completed successfully, while `npm run lint` reported existing source lint errors.
+- Authentication is mock-only and stored in browser `localStorage`.
+- There is no real backend, database, RBAC, server session, or password hashing.
+- Invoice and receipt persistence is not durable.
+- PDF generation is currently a placeholder utility.
+- FIRS compliance messaging appears in the UI, but live FIRS validation/submission is not implemented.
+- No automated test suite is configured yet.
 
 ## License
 
-No license file or package-level license field was found in this repository. Add a `LICENSE` file before distributing the project publicly.
-
-## Contact / Maintainer
-
-No maintainer contact was found in the repository. Add maintainer details here when available.
+No license file is present in this repository.

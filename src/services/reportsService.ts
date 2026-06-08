@@ -192,7 +192,7 @@ export const getRevenueSummary = async (): Promise<RevenueSummary> => {
   };
 };
 
-export let reportCache = {
+export const reportCache = {
   revenueSummary: null,
   statusSummary: null,
   topCustomers: null,

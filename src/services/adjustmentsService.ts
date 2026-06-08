@@ -30,7 +30,7 @@ export interface DebitNote {
 }
 
 // Mock data storage
-let mockCreditNotes: CreditNote[] = [
+const mockCreditNotes: CreditNote[] = [
   {
     id: "1",
     creditNoteNumber: "CN-2024-001",
@@ -46,7 +46,7 @@ let mockCreditNotes: CreditNote[] = [
   },
 ];
 
-let mockDebitNotes: DebitNote[] = [
+const mockDebitNotes: DebitNote[] = [
   {
     id: "1",
     debitNoteNumber: "DN-2024-001",
