@@ -11,7 +11,10 @@ export interface BusinessSettings {
   logo?: string; // Base64 or URL
   defaultTaxRate: number;
   paymentTerms: number;
+  invoicePrefix?: string;
+  receiptPrefix?: string;
   invoiceNotes: string;
+  footerNote?: string;
 }
 
 const SETTINGS_KEY = 'paytraka_settings';
@@ -25,7 +28,10 @@ const DEFAULT_SETTINGS: BusinessSettings = {
   logo: '',
   defaultTaxRate: 7.5,
   paymentTerms: 30,
-  invoiceNotes: 'Thank you for your business'
+  invoicePrefix: 'INV',
+  receiptPrefix: 'RCP',
+  invoiceNotes: 'Thank you for your business',
+  footerNote: 'This document was generated with Paytraka Invoice Nexus.'
 };
 
 /**

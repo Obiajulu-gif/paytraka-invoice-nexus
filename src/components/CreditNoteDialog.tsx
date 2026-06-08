@@ -19,7 +19,7 @@ import {
   createCreditNote,
   type CreditNote,
 } from "@/services/adjustmentsService";
-import { getInvoices } from "@/services/invoicesService";
+	import { getInvoices, type Invoice } from "@/services/invoicesService";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -36,7 +36,7 @@ export function CreditNoteDialog({
   creditNote,
   onSuccess,
 }: CreditNoteDialogProps) {
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [formData, setFormData] = useState({
     invoiceId: "",
     invoiceNumber: "",
@@ -45,7 +45,7 @@ export function CreditNoteDialog({
     amount: "",
     reason: "",
     date: new Date().toISOString().split("T")[0],
-    status: "Issued" as CreditNote["status"],
+    status: "issued" as CreditNote["status"],
     // status: "draft" as CreditNote["status"],
   });
 

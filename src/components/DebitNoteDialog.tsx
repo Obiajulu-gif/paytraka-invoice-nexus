@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createDebitNote, type DebitNote } from "@/services/adjustmentsService";
-import { getInvoices } from "@/services/invoicesService";
+import { getInvoices, type Invoice } from "@/services/invoicesService";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -33,7 +33,7 @@ export function DebitNoteDialog({
   debitNote,
   onSuccess,
 }: DebitNoteDialogProps) {
-  const [invoices, setInvoices] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [formData, setFormData] = useState({
     invoiceId: "",
     invoiceNumber: "",
@@ -42,7 +42,7 @@ export function DebitNoteDialog({
     amount: "",
     reason: "",
     date: new Date().toISOString().split("T")[0],
-    status: "Issued" as DebitNote["status"],
+    status: "issued" as DebitNote["status"],
     // status: "draft" as DebitNote["status"],
   });
 
