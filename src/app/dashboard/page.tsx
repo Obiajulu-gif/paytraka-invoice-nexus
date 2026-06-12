@@ -1,5 +1,5 @@
-import { DashboardPage } from "@/components/onboarding/OnboardingFlow";
+import { CompanyDashboard } from "@/components/dashboard/CompanyDashboard";
 
 export default function Dashboard() {
-  return <DashboardPage />;
+  return <CompanyDashboard />;
 }

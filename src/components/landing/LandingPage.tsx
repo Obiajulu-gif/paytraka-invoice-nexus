@@ -300,7 +300,7 @@ function InvoiceMockup() {
 function HeroSection() {
   return (
     <section className="overflow-hidden border-b border-[#D7DEE8] bg-[radial-gradient(circle_at_78%_18%,rgba(218,222,253,0.9)_0,rgba(247,249,251,0)_32%),linear-gradient(180deg,#F7F9FB_0%,#FFFFFF_100%)]">
-      <div className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-7xl items-center gap-10 px-5 py-12 md:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:py-10">
+      <div className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-7xl items-center gap-10  py-12 md:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:py-10">
         <div className="reveal-up">
           <span className="inline-flex rounded-full border border-[#C5C4DA] bg-[#DADEFD]/70 px-4 py-2 text-sm font-semibold text-[#0001B1]">
             E-Invoicing Readiness Platform for Nigerian Businesses
@@ -345,6 +345,7 @@ function PainPointsSection() {
         <SectionHeader
           title="Businesses are not ready for e-invoicing compliance"
           description="Manual processes and scattered tools are the biggest barriers to meeting new regulatory standards."
+          align="left"
         />
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {painPoints.map(({ icon: Icon, title, description }) => (
@@ -367,6 +368,7 @@ function WorkflowSection() {
         <SectionHeader
           title="One portal for invoice creation, validation, and compliance"
           description="PayTraka handles the heavy lifting of tax readiness in six simple steps."
+          align="left"
         />
         <div className="mt-12 grid gap-6 md:grid-cols-3 lg:grid-cols-6">
           {workflow.map(([title, description], index) => (
@@ -388,15 +390,14 @@ function FeatureGridSection() {
   return (
     <section className="bg-[#F7F9FB] py-16 md:py-24">
       <div className="reveal-up mx-auto max-w-7xl px-5 md:px-8">
-        <div className="mx-auto max-w-4xl">
-          <p className="text-sm font-extrabold uppercase tracking-widest text-[#0001B1]">One connected platform</p>
+        <div className="mx-auto">
           <SectionHeader
             align="left"
             title="Comprehensive Features for Every Tax Detail"
             description="A purpose-built toolkit for Nigerian financial controllers and small business owners."
           />
         </div>
-        <div className="mx-auto mt-12 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-12 grid  gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {features.map(({ icon: Icon, title, description }) => (
             <article
               key={title}

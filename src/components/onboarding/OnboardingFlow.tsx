@@ -424,8 +424,38 @@ export function LoginPage() {
       setError("Enter your email and password to continue.");
       return;
     }
-    saveOnboardingState({ currentStep: getOnboardingState().completed ? "complete" : getOnboardingState().currentStep });
-    router.push(getOnboardingState().completed ? "/dashboard" : "/onboarding/business-details");
+    const state = getOnboardingState();
+    const stepRoutes: Partial<Record<OnboardingState["currentStep"], string>> = {
+      "verify-email": "/verify-email",
+      "business-details": "/onboarding/business-details",
+      "tax-profile": "/onboarding/tax-profile",
+      "bank-details": "/onboarding/bank-details",
+      preferences: "/onboarding/preferences",
+      review: "/onboarding/review",
+    };
+
+    if (!state.signup.workEmail) {
+      saveOnboardingState({
+        completed: true,
+        currentStep: "complete",
+        signup: {
+          workEmail: email,
+          firstName: "Admin",
+          lastName: "User",
+          companyName: "Chozol Global Services Ltd",
+          emailVerified: true,
+        },
+        businessDetails: {
+          businessName: "Chozol Global Services Ltd",
+          businessEmail: email,
+          contactPerson: "Admin User",
+        },
+      });
+      router.push("/dashboard");
+      return;
+    }
+
+    router.push(state.completed ? "/dashboard" : stepRoutes[state.currentStep] ?? "/onboarding/business-details");
   }
 
   return (
