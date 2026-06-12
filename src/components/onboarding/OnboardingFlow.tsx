@@ -13,11 +13,14 @@ import {
   EyeOff,
   FileCheck2,
   Landmark,
+  Lock,
   Mail,
   MapPin,
+  Phone,
   ReceiptText,
   ShieldCheck,
   Sparkles,
+  User,
   Zap,
 } from "lucide-react";
 import Image from "next/image";
@@ -53,6 +56,13 @@ type SidebarConfig = {
   features: SidebarFeature[];
   quote?: string;
   compactTrust?: string;
+};
+
+type SignupField = {
+  name: "firstName" | "lastName" | "workEmail" | "phoneNumber" | "companyName";
+  label: string;
+  placeholder: string;
+  icon: React.ElementType;
 };
 
 const sidebarConfigs: Record<PageKind, SidebarConfig> = {
@@ -141,14 +151,13 @@ const colorOptions = [
   ["Slate", "#64748B"],
 ];
 const templates = ["Classic", "Modern", "Minimal", "Bold Cards"];
-
-function Logo({ inverse = false }: { inverse?: boolean }) {
-  return (
-    <span className="inline-flex items-center gap-3">
-      <Image src={inverse ? "/paytraka_logo/paytraka-logo-white-bg.png" : "/paytraka_logo/paytraka-logo-navbar.png"} alt="PayTraka" width={150} height={42} className="h-8 w-auto object-contain" priority />
-    </span>
-  );
-}
+const signupFields: SignupField[] = [
+  { name: "firstName", label: "First Name", placeholder: "Jane", icon: User },
+  { name: "lastName", label: "Last Name", placeholder: "Doe", icon: User },
+  { name: "workEmail", label: "Work Email", placeholder: "jane@company.com", icon: Mail },
+  { name: "phoneNumber", label: "Phone Number", placeholder: "+234 800 000 0000", icon: Phone },
+  { name: "companyName", label: "Company Name", placeholder: "Enterprise Ltd.", icon: Building2 },
+];
 
 function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: React.ReactNode }) {
   const config = sidebarConfigs[kind];
@@ -157,9 +166,6 @@ function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: Re
     <div className="min-h-screen bg-[#F5F6FA] lg:grid lg:h-screen lg:grid-cols-[42%_58%] lg:overflow-hidden">
       <aside className="relative hidden overflow-hidden bg-[#0001B1] px-10 py-9 text-white lg:flex lg:h-screen lg:flex-col">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_80%_70%,rgba(17,23,232,0.9),transparent_35%)]" />
-        <div className="relative z-10">
-          <Logo inverse />
-        </div>
         <div className="relative z-10 my-auto max-w-xl">
           {config.eyebrow ? <p className="mb-6 inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white/90">{config.eyebrow}</p> : null}
           <h1 className="text-3xl font-extrabold leading-tight xl:text-4xl">{config.headline}</h1>
@@ -191,9 +197,11 @@ function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: Re
         </div>
       </aside>
       <main className="min-h-screen px-5 py-8 md:px-10 lg:h-screen lg:min-h-0 lg:overflow-y-auto lg:px-10">
-        <div className="mb-8 flex items-center justify-between lg:hidden">
-          <Logo />
-          <Link href="/" className="text-sm font-bold text-[#0001B1]">Home</Link>
+        <div className="mx-auto mb-4 flex max-w-6xl items-center justify-between">
+          <Link href="/" aria-label="Go to PayTraka landing page" className="inline-flex focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
+            <Image src="/paytraka_logo/paytraka-logo-transparent.png" alt="PayTraka" width={168} height={48} className="h-9 w-auto object-contain" priority />
+          </Link>
+          <Link href="/" className="text-sm font-bold text-[#0001B1] lg:hidden">Home</Link>
         </div>
         {children}
       </main>
@@ -228,20 +236,16 @@ function Field({ label, error, children }: { label: string; error?: string; chil
   );
 }
 
-const inputClass = "h-14 w-full rounded-xl border border-[#C5C4DA] bg-white px-5 text-base text-[#191C1E] outline-none transition placeholder:text-[#9CA0AA] focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]";
+const inputClass = "h-12 w-full rounded-xl border border-[#C5C4DA] bg-white px-4 text-base text-[#191C1E] outline-none transition placeholder:text-[#9CA0AA] focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]";
 const selectClass = `${inputClass} appearance-none pr-10`;
 
-function StepActions({ backHref, nextLabel = "Continue", disabled = false }: { backHref?: string; nextLabel?: string; disabled?: boolean }) {
+function StepActions({ backHref, nextLabel = "Continue", disabled = false }: { backHref: string; nextLabel?: string; disabled?: boolean }) {
   return (
-    <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-      {backHref ? (
-        <Link href={backHref} className="inline-flex h-14 items-center justify-center rounded-xl border border-[#C5C4DA] px-8 text-base font-bold text-[#191C1E] transition hover:border-[#1117E8] hover:text-[#0001B1]">
-          <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Back
-        </Link>
-      ) : (
-        <button type="button" className="h-14 rounded-xl border border-[#C5C4DA] px-8 text-base font-bold text-[#191C1E] transition hover:border-[#1117E8]">Save and exit</button>
-      )}
-      <button type="submit" disabled={disabled} className="inline-flex h-14 flex-1 items-center justify-center rounded-xl bg-[#1117E8] px-8 text-base font-bold text-white shadow-[0_16px_32px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] disabled:cursor-not-allowed disabled:opacity-60">
+    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+      <Link href={backHref} className="inline-flex h-12 items-center justify-center rounded-xl border border-[#C5C4DA] px-8 text-base font-bold text-[#191C1E] transition hover:border-[#1117E8] hover:text-[#0001B1]">
+        <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Back
+      </Link>
+      <button type="submit" disabled={disabled} className="inline-flex h-12 flex-1 items-center justify-center rounded-xl bg-[#1117E8] px-8 text-base font-bold text-white shadow-[0_16px_32px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] disabled:cursor-not-allowed disabled:opacity-60">
         {disabled ? "Saving..." : nextLabel}
       </button>
     </div>
@@ -363,35 +367,35 @@ export function SignupPage() {
 
   return (
     <AuthOnboardingLayout kind="signup">
-      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col justify-center py-6">
-        <Logo />
-        <h1 className="mt-7 text-3xl font-extrabold text-[#191C1E] md:text-4xl">Create your PayTraka workspace</h1>
+      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl flex-col justify-center py-5">
+        <h1 className="text-3xl font-extrabold text-[#191C1E] md:text-4xl">Create your PayTraka workspace</h1>
         <p className="mt-3 text-base leading-7 text-[#454557]">Start managing invoices, payments, customers, reports, and compliance from one secure business dashboard.</p>
-        <div className="mt-7 grid gap-4 md:grid-cols-2">
-          {[
-            ["firstName", "First Name", "Jane"],
-            ["lastName", "Last Name", "Doe"],
-            ["workEmail", "Work Email", "jane@company.com"],
-            ["phoneNumber", "Phone Number", "+234 800 000 0000"],
-            ["companyName", "Company Name", "Enterprise Ltd."],
-          ].map(([name, label, placeholder]) => (
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {signupFields.map(({ name, label, placeholder, icon: Icon }) => (
             <Field key={name} label={label} error={errors[name]}>
-              <input value={String(form[name as keyof typeof form])} onChange={(event) => setForm({ ...form, [name]: event.target.value })} className={inputClass} placeholder={placeholder} />
+              <div className="relative">
+                <Icon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#757588]" aria-hidden="true" />
+                <input aria-invalid={Boolean(errors[name])} value={String(form[name])} onChange={(event) => setForm({ ...form, [name]: event.target.value })} className={`${inputClass} pl-12`} placeholder={placeholder} />
+              </div>
             </Field>
           ))}
           <Field label="Password" error={errors.password}>
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className={`${inputClass} pr-12`} placeholder="Minimum 8 characters" />
+              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#757588]" aria-hidden="true" />
+              <input aria-invalid={Boolean(errors.password)} type={showPassword ? "text" : "password"} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className={`${inputClass} pl-12 pr-12`} placeholder="Minimum 8 characters" />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#757588]" aria-label="Toggle password visibility">
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </Field>
           <Field label="Confirm Password" error={errors.confirmPassword}>
-            <input type="password" value={form.confirmPassword} onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })} className={inputClass} placeholder="Repeat password" />
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#757588]" aria-hidden="true" />
+              <input aria-invalid={Boolean(errors.confirmPassword)} type="password" value={form.confirmPassword} onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })} className={`${inputClass} pl-12`} placeholder="Repeat password" />
+            </div>
           </Field>
         </div>
-        <label className="mt-6 flex gap-3 text-sm font-semibold text-[#454557]">
+        <label className="mt-4 flex gap-3 text-sm font-semibold text-[#454557]">
           <input type="checkbox" checked={form.terms} onChange={(event) => setForm({ ...form, terms: event.target.checked })} className="mt-1 h-5 w-5 rounded border-[#C5C4DA]" />
           I agree to the Terms of Service, Privacy Policy, and responsible use of PayTraka readiness tools.
         </label>
@@ -399,7 +403,7 @@ export function SignupPage() {
         <button disabled={submitting} className="mt-6 h-12 rounded-xl bg-[#1117E8] text-base font-bold text-white shadow-[0_16px_32px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] disabled:opacity-60">
           {submitting ? "Creating..." : "Create Workspace"}
         </button>
-        <p className="mt-7 text-center text-base text-[#454557]">Already have a workspace? <Link href="/login" className="font-bold text-[#0001B1]">Sign in</Link></p>
+        <p className="mt-5 text-center text-base text-[#454557]">Already have a workspace? <Link href="/login" className="font-bold text-[#0001B1]">Sign in</Link></p>
       </form>
     </AuthOnboardingLayout>
   );
@@ -426,16 +430,20 @@ export function LoginPage() {
 
   return (
     <AuthOnboardingLayout kind="signup">
-      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col justify-center py-6">
+      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-lg flex-col justify-center py-5">
         <h1 className="text-4xl font-extrabold text-[#191C1E]">Welcome back</h1>
         <p className="mt-3 text-lg text-[#454557]">Please enter your credentials to access your dashboard.</p>
-        <div className="mt-9 space-y-5">
+        <div className="mt-8 space-y-5">
           <Field label="Work Email">
-            <input value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} placeholder="name@company.com" />
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#757588]" aria-hidden="true" />
+              <input value={email} onChange={(event) => setEmail(event.target.value)} className={`${inputClass} pl-12`} placeholder="name@company.com" />
+            </div>
           </Field>
           <Field label="Password">
             <div className="relative">
-              <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} className={`${inputClass} pr-12`} placeholder="••••••••" />
+              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#757588]" aria-hidden="true" />
+              <input type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} className={`${inputClass} pl-12 pr-12`} placeholder="••••••••" />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#757588]" aria-label="Toggle password visibility">
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -447,15 +455,8 @@ export function LoginPage() {
           <a href="#" className="font-bold text-[#0001B1]">Forgot Password?</a>
         </div>
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
-        <button className="mt-8 h-16 rounded-xl bg-[#1117E8] text-xl font-bold text-white transition hover:bg-[#0001B1]">Sign In</button>
-        <div className="mt-12 flex items-center gap-6 text-sm font-bold uppercase tracking-widest text-[#757588]">
-          <span className="h-px flex-1 bg-[#C5C4DA]" /> Or continue with <span className="h-px flex-1 bg-[#C5C4DA]" />
-        </div>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          <button type="button" className="h-14 rounded-xl border border-[#C5C4DA] bg-white font-bold text-[#454557]">Google</button>
-          <button type="button" className="h-14 rounded-xl border border-[#C5C4DA] bg-white font-bold text-[#454557]">LinkedIn</button>
-        </div>
-        <p className="mt-12 text-center text-lg text-[#454557]">Don&apos;t have an account? <Link href="/signup" className="font-bold text-[#0001B1]">Sign up</Link></p>
+        <button className="mt-7 h-12 rounded-xl bg-[#1117E8] text-base font-bold text-white transition hover:bg-[#0001B1]">Sign In</button>
+        <p className="mt-8 text-center text-base text-[#454557]">Don&apos;t have an account? <Link href="/signup" className="font-bold text-[#0001B1]">Sign up</Link></p>
       </form>
     </AuthOnboardingLayout>
   );
@@ -575,7 +576,7 @@ export function BusinessDetailsPage() {
           <Field label="Phone Number" error={errors.phoneNumber}><div className="flex"><span className="inline-flex h-14 items-center rounded-l-xl border border-r-0 border-[#C5C4DA] bg-white px-5 text-[#454557]">+234</span><input value={form.phoneNumber} onChange={(e) => setForm({ ...form, phoneNumber: e.target.value })} className={`${inputClass} rounded-l-none`} placeholder="800 000 0000" /></div></Field>
           <Field label="Business Address" error={errors.businessAddress}><textarea value={form.businessAddress} onChange={(e) => setForm({ ...form, businessAddress: e.target.value })} className={`${inputClass} h-28 py-4`} placeholder="Street name, building number, and city" /></Field>
         </div>
-        <StepActions />
+        <StepActions backHref="/verify-email" />
       </form>
     </AuthOnboardingLayout>
   );
@@ -655,8 +656,8 @@ export function BankDetailsPage() {
   return (
     <AuthOnboardingLayout kind="bank">
       <form onSubmit={submit} className="mx-auto max-w-5xl py-10">
-        <h1 className="text-4xl font-extrabold text-[#191C1E]">Bank details</h1>
-        <p className="mt-4 max-w-4xl text-lg leading-7 text-[#454557]">Configure where your payments will be received. This information will be used for automated invoicing and tax compliance.</p>
+        <ProgressHeader step="STEP 3 OF 5" title="Bank details" percent={60} />
+        <p className="-mt-6 mb-8 max-w-4xl text-lg leading-7 text-[#454557]">Configure where your payments will be received. This information will be used for automated invoicing and tax compliance.</p>
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <Field label="Bank Name" error={errors.bankName}><SelectField value={form.bankName} onChange={(bankName) => setForm({ ...form, bankName })} options={banks} placeholder="Select Bank" /></Field>
           <Field label="Account Number" error={errors.accountNumber}><input value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })} className={inputClass} placeholder="10-digit Number" /></Field>
@@ -671,7 +672,7 @@ export function BankDetailsPage() {
           <Toggle label="Generate payment link" text="Include a PayTraka checkout link for faster client payments." checked={form.generatePaymentLink} onChange={(generatePaymentLink) => setForm({ ...form, generatePaymentLink })} />
           <Toggle label="Display bank details on invoice" text="Your NUBAN and Bank Name will appear in the invoice footer." checked={form.displayBankDetails} onChange={(displayBankDetails) => setForm({ ...form, displayBankDetails })} />
         </div>
-        <StepActions backHref="/onboarding/tax-profile" nextLabel="Continue to Step 4" />
+        <StepActions backHref="/onboarding/tax-profile" />
       </form>
     </AuthOnboardingLayout>
   );
@@ -710,13 +711,7 @@ export function PreferencesPage() {
   return (
     <AuthOnboardingLayout kind="preferences">
       <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col py-6">
-        <div className="flex items-center justify-between border-b border-[#C5C4DA] pb-6">
-          <h1 className="text-3xl font-bold text-[#0001B1]">Preferences</h1>
-          <div className="flex items-center gap-6">
-            <span className="font-bold text-[#454557]">Step 4 of 5</span>
-            <span className="h-2 w-44 rounded-full bg-[#DFE3E8]"><span className="block h-full w-4/5 rounded-full bg-[#1117E8]" /></span>
-          </div>
-        </div>
+        <ProgressHeader step="STEP 4 OF 5" title="Preferences" percent={80} />
         <div className="grid flex-1 items-center gap-12 py-10 lg:grid-cols-2">
           <section>
             <h2 className="text-2xl font-bold text-[#191C1E]">Brand Accent Color</h2>
@@ -741,10 +736,7 @@ export function PreferencesPage() {
             </div>
           </section>
         </div>
-        <div className="flex flex-col justify-between gap-4 border-t border-[#C5C4DA] pt-8 sm:flex-row">
-          <Link href="/onboarding/bank-details" className="inline-flex h-14 items-center justify-center rounded-xl border border-[#C5C4DA] px-8 text-base font-bold text-[#191C1E]"><ArrowLeft className="mr-2 h-4 w-4" /> Back</Link>
-          <button className="inline-flex h-14 items-center justify-center rounded-xl bg-[#1117E8] px-16 text-base font-bold text-white shadow-[0_16px_32px_rgba(17,23,232,0.2)]">Continue <ArrowRight className="ml-2 h-4 w-4" /></button>
-        </div>
+        <StepActions backHref="/onboarding/bank-details" />
         <div className="mt-6 flex flex-wrap gap-6 text-sm font-semibold text-[#454557]">
           <a href="#">Terms of Service</a><a href="#">Privacy Policy</a><a href="#">Refund Policy</a>
         </div>

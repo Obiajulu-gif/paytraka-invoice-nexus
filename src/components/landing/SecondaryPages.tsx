@@ -44,7 +44,7 @@ export function SiteNavbar({ active }: { active: PageKey }) {
     <header className="sticky top-0 z-50 border-b border-[#C5C4DA]/50 bg-white/95 backdrop-blur-xl">
       <nav className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 md:px-8" aria-label="Main navigation">
         <Link href="/" className="flex items-center gap-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
-          <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={145} height={40} className="h-9 w-auto" priority />
+          <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={170} height={48} className="h-9 w-auto object-contain md:h-11" priority />
         </Link>
         <div className="hidden items-center gap-7 lg:flex">
           {navLinks.map((link) => (
@@ -65,10 +65,10 @@ export function SiteNavbar({ active }: { active: PageKey }) {
           <button className="hidden h-10 w-10 items-center justify-center rounded-lg text-[#454557] transition hover:bg-[#F7F9FB] hover:text-[#0001B1] sm:inline-flex" type="button" aria-label="Toggle theme">
             <Moon size={20} aria-hidden="true" />
           </button>
-          <a href="#contact" className="hidden min-h-10 items-center rounded-lg border border-[#C5C4DA] bg-white px-5 text-sm font-bold text-[#0001B1] transition hover:border-[#1117E8] sm:inline-flex">
+          <a href="/login" className="hidden min-h-10 items-center rounded-lg border border-[#C5C4DA] bg-white px-5 text-sm font-bold text-[#0001B1] transition hover:border-[#1117E8] sm:inline-flex">
             Sign in
           </a>
-          <a href="#contact" className="inline-flex min-h-10 items-center rounded-lg bg-[#1117E8] px-5 text-sm font-bold text-white shadow-[0_12px_28px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1]">
+          <a href="/signup" className="inline-flex min-h-10 items-center rounded-lg bg-[#1117E8] px-5 text-sm font-bold text-white shadow-[0_12px_28px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1]">
             Get started
           </a>
         </div>
@@ -92,7 +92,7 @@ export function SimpleFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:grid-cols-4 md:px-8">
         <div>
           <Link href="/" className="flex items-center gap-2">
-            <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={145} height={40} className="h-9 w-auto" />
+            <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={180} height={52} className="h-11 w-auto object-contain" />
           </Link>
           <p className="mt-6 text-sm leading-6 text-[#66728A]">
             © 2026 PayTraka. Professional Tax Compliance Disclaimer: PayTraka is an e-invoicing readiness platform aligned with FIRS/NRS workflows.
