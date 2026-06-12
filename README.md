@@ -8,8 +8,8 @@ This repository has been migrated from React + TypeScript + Vite to a Next.js Ap
 
 | Area | Technology |
 | --- | --- |
-| Framework | Next.js 15 App Router |
-| UI | React 18, TypeScript |
+| Framework | Next.js 16 App Router |
+| UI | React 19, TypeScript |
 | Styling | Tailwind CSS |
 | Components | shadcn/ui-style components, Radix UI |
 | Charts | Recharts |
@@ -17,7 +17,7 @@ This repository has been migrated from React + TypeScript + Vite to a Next.js Ap
 | Forms | React Hook Form, Zod |
 | Mock state | In-memory services and browser `localStorage` |
 
-Next.js 15 is used because the local environment is running Node.js 18.19.1. Current Next.js 16 releases require a newer Node.js runtime.
+Next.js 16 requires Node.js `>=20.9.0`. The local environment used for this upgrade is Node.js `v24.12.0`.
 
 ## Getting Started
 

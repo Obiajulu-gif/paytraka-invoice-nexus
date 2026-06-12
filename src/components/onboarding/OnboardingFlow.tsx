@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   BadgeCheck,
-  Banknote,
   BarChart3,
   Building2,
   Check,
@@ -19,7 +18,6 @@ import {
   ReceiptText,
   ShieldCheck,
   Sparkles,
-  WalletCards,
   Zap,
 } from "lucide-react";
 import Image from "next/image";
@@ -147,7 +145,7 @@ const templates = ["Classic", "Modern", "Minimal", "Bold Cards"];
 function Logo({ inverse = false }: { inverse?: boolean }) {
   return (
     <span className="inline-flex items-center gap-3">
-      <Image src={inverse ? "/paytraka_logo/paytraka-logo-transparent.png" : "/paytraka_logo/paytraka-logo-navbar.png"} alt="PayTraka" width={150} height={42} className="h-10 w-auto object-contain" priority />
+      <Image src={inverse ? "/paytraka_logo/paytraka-logo-white-bg.png" : "/paytraka_logo/paytraka-logo-navbar.png"} alt="PayTraka" width={150} height={42} className="h-8 w-auto object-contain" priority />
     </span>
   );
 }
@@ -156,43 +154,43 @@ function AuthOnboardingLayout({ kind, children }: { kind: PageKind; children: Re
   const config = sidebarConfigs[kind];
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA] lg:grid lg:grid-cols-[45%_55%]">
-      <aside className="relative hidden overflow-hidden bg-[#0001B1] px-12 py-12 text-white lg:flex lg:min-h-screen lg:flex-col">
+    <div className="min-h-screen bg-[#F5F6FA] lg:grid lg:h-screen lg:grid-cols-[42%_58%] lg:overflow-hidden">
+      <aside className="relative hidden overflow-hidden bg-[#0001B1] px-10 py-9 text-white lg:flex lg:h-screen lg:flex-col">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_80%_70%,rgba(17,23,232,0.9),transparent_35%)]" />
         <div className="relative z-10">
           <Logo inverse />
         </div>
-        <div className="relative z-10 my-auto max-w-2xl">
-          {config.eyebrow ? <p className="mb-8 inline-flex rounded-full border border-white/25 bg-white/10 px-5 py-2 text-sm font-bold uppercase tracking-wide text-white/90">{config.eyebrow}</p> : null}
-          <h1 className="text-5xl font-extrabold leading-tight md:text-6xl">{config.headline}</h1>
-          <p className="mt-7 text-xl leading-9 text-white/75">{config.body}</p>
-          <div className="mt-12 grid gap-5">
+        <div className="relative z-10 my-auto max-w-xl">
+          {config.eyebrow ? <p className="mb-6 inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white/90">{config.eyebrow}</p> : null}
+          <h1 className="text-3xl font-extrabold leading-tight xl:text-4xl">{config.headline}</h1>
+          <p className="mt-4 text-sm leading-6 text-white/75 xl:text-base">{config.body}</p>
+          <div className="mt-6 grid gap-3">
             {config.features.map(({ icon: Icon, title, text }, index) => (
-              <div key={title} className="animate-[floatCard_7s_ease-in-out_infinite] rounded-2xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur" style={{ animationDelay: `${index * 0.8}s` }}>
-                <Icon className="h-7 w-7" aria-hidden="true" />
-                <h2 className="mt-5 text-2xl font-bold">{title}</h2>
-                <p className="mt-2 text-lg leading-7 text-white/68">{text}</p>
+              <div key={title} className="animate-[floatCard_7s_ease-in-out_infinite] rounded-xl border border-white/20 bg-white/10 p-3.5 shadow-2xl backdrop-blur" style={{ animationDelay: `${index * 0.8}s` }}>
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                <h2 className="mt-2 text-base font-bold xl:text-lg">{title}</h2>
+                <p className="mt-1 text-xs leading-5 text-white/68 xl:text-sm">{text}</p>
               </div>
             ))}
           </div>
         </div>
         <div className="relative z-10">
           {config.compactTrust ? (
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-7">
+            <div className="rounded-xl border border-white/20 bg-white/10 p-4">
               <p className="text-sm font-bold tracking-widest text-white/70">{config.compactTrust}</p>
-              <div className="mt-5 grid grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((item) => <span key={item} className="h-8 rounded bg-white/25" />)}
+              <div className="mt-4 grid grid-cols-4 gap-3">
+                {[1, 2, 3, 4].map((item) => <span key={item} className="h-6 rounded bg-white/25" />)}
               </div>
             </div>
           ) : null}
           {config.quote ? (
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-7 text-lg leading-7 text-white/86">
+            <div className="rounded-xl border border-white/20 bg-white/10 p-4 text-sm leading-6 text-white/86">
               {config.quote}
             </div>
           ) : null}
         </div>
       </aside>
-      <main className="min-h-screen px-5 py-8 md:px-10 lg:px-16">
+      <main className="min-h-screen px-5 py-8 md:px-10 lg:h-screen lg:min-h-0 lg:overflow-y-auto lg:px-10">
         <div className="mb-8 flex items-center justify-between lg:hidden">
           <Logo />
           <Link href="/" className="text-sm font-bold text-[#0001B1]">Home</Link>
@@ -209,7 +207,7 @@ function ProgressHeader({ step, title, percent }: { step: string; title: string;
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="text-sm font-extrabold tracking-widest text-[#0001B1]">{step}</p>
-          <h1 className="mt-2 text-4xl font-extrabold text-[#191C1E] md:text-5xl">{title}</h1>
+      <h1 className="mt-2 text-3xl font-extrabold text-[#191C1E] md:text-4xl">{title}</h1>
         </div>
         <p className="hidden text-lg font-bold text-[#454557] sm:block">{percent}% Complete</p>
       </div>
@@ -365,11 +363,11 @@ export function SignupPage() {
 
   return (
     <AuthOnboardingLayout kind="signup">
-      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col justify-center py-8">
+      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col justify-center py-6">
         <Logo />
-        <h1 className="mt-10 text-4xl font-extrabold text-[#191C1E] md:text-5xl">Create your PayTraka workspace</h1>
-        <p className="mt-4 text-lg leading-8 text-[#454557]">Start managing invoices, payments, customers, reports, and compliance from one secure business dashboard.</p>
-        <div className="mt-10 grid gap-5 md:grid-cols-2">
+        <h1 className="mt-7 text-3xl font-extrabold text-[#191C1E] md:text-4xl">Create your PayTraka workspace</h1>
+        <p className="mt-3 text-base leading-7 text-[#454557]">Start managing invoices, payments, customers, reports, and compliance from one secure business dashboard.</p>
+        <div className="mt-7 grid gap-4 md:grid-cols-2">
           {[
             ["firstName", "First Name", "Jane"],
             ["lastName", "Last Name", "Doe"],
@@ -398,7 +396,7 @@ export function SignupPage() {
           I agree to the Terms of Service, Privacy Policy, and responsible use of PayTraka readiness tools.
         </label>
         {errors.terms ? <p className="mt-2 text-sm font-semibold text-red-600">{errors.terms}</p> : null}
-        <button disabled={submitting} className="mt-8 h-14 rounded-xl bg-[#1117E8] text-base font-bold text-white shadow-[0_16px_32px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] disabled:opacity-60">
+        <button disabled={submitting} className="mt-6 h-12 rounded-xl bg-[#1117E8] text-base font-bold text-white shadow-[0_16px_32px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] disabled:opacity-60">
           {submitting ? "Creating..." : "Create Workspace"}
         </button>
         <p className="mt-7 text-center text-base text-[#454557]">Already have a workspace? <Link href="/login" className="font-bold text-[#0001B1]">Sign in</Link></p>
@@ -428,10 +426,10 @@ export function LoginPage() {
 
   return (
     <AuthOnboardingLayout kind="signup">
-      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col justify-center py-8">
-        <h1 className="text-5xl font-extrabold text-[#191C1E]">Welcome back</h1>
-        <p className="mt-4 text-xl text-[#454557]">Please enter your credentials to access your dashboard.</p>
-        <div className="mt-12 space-y-6">
+      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col justify-center py-6">
+        <h1 className="text-4xl font-extrabold text-[#191C1E]">Welcome back</h1>
+        <p className="mt-3 text-lg text-[#454557]">Please enter your credentials to access your dashboard.</p>
+        <div className="mt-9 space-y-5">
           <Field label="Work Email">
             <input value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} placeholder="name@company.com" />
           </Field>
@@ -494,8 +492,8 @@ export function VerifyEmailPage() {
     <AuthOnboardingLayout kind="verify">
       <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-3xl flex-col justify-center">
         <span className="flex h-20 w-20 items-center justify-center rounded-2xl bg-[#DADEFD] text-[#1117E8]"><Mail size={36} /></span>
-        <h1 className="mt-10 text-5xl font-extrabold text-[#191C1E]">Verify your email</h1>
-        <p className="mt-5 max-w-2xl text-xl leading-8 text-[#454557]">We&apos;ve sent a 6-digit verification code to {state.signup.workEmail || "your email"}. Enter it below to continue.</p>
+        <h1 className="mt-8 text-4xl font-extrabold text-[#191C1E]">Verify your email</h1>
+        <p className="mt-4 max-w-2xl text-lg leading-7 text-[#454557]">We&apos;ve sent a 6-digit verification code to {state.signup.workEmail || "your email"}. Enter it below to continue.</p>
         <div className="mt-10 grid grid-cols-6 gap-3 md:gap-5">
           {code.map((value, index) => (
             <input
@@ -515,7 +513,7 @@ export function VerifyEmailPage() {
                   setCode(pasted.split(""));
                 }
               }}
-              className="h-16 rounded-xl border border-[#C5C4DA] bg-white text-center text-3xl font-bold text-[#191C1E] outline-none transition focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD] md:h-24"
+              className="h-16 rounded-xl border border-[#C5C4DA] bg-white text-center text-2xl font-bold text-[#191C1E] outline-none transition focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD] md:h-20"
               aria-label={`Verification code digit ${index + 1}`}
             />
           ))}
@@ -562,7 +560,7 @@ export function BusinessDetailsPage() {
 
   return (
     <AuthOnboardingLayout kind="business">
-      <form onSubmit={submit} className="mx-auto max-w-5xl py-10">
+      <form onSubmit={submit} className="mx-auto max-w-5xl py-8">
         <ProgressHeader step="STEP 1 OF 5" title="Business Details" percent={20} />
         <div className="grid gap-6 md:grid-cols-2">
           <Field label="Business Name" error={errors.businessName}><input value={form.businessName} onChange={(e) => setForm({ ...form, businessName: e.target.value })} className={inputClass} placeholder="Legal registered name" /></Field>
@@ -604,7 +602,7 @@ export function TaxProfilePage() {
 
   return (
     <AuthOnboardingLayout kind="tax">
-      <form onSubmit={submit} className="mx-auto max-w-5xl py-10">
+      <form onSubmit={submit} className="mx-auto max-w-5xl py-8">
         <ProgressHeader step="STEP 2 OF 5" title="Tax & Compliance Profile" percent={40} />
         <div className="grid gap-6 md:grid-cols-2">
           <Field label="TIN" error={errors.tin}><input value={form.tin} onChange={(e) => setForm({ ...form, tin: e.target.value })} className={inputClass} placeholder="Tax Identification Number" /></Field>
@@ -656,20 +654,20 @@ export function BankDetailsPage() {
 
   return (
     <AuthOnboardingLayout kind="bank">
-      <form onSubmit={submit} className="mx-auto max-w-5xl py-16">
-        <h1 className="text-5xl font-extrabold text-[#191C1E]">Bank details</h1>
-        <p className="mt-6 max-w-4xl text-xl leading-8 text-[#454557]">Configure where your payments will be received. This information will be used for automated invoicing and tax compliance.</p>
-        <div className="mt-12 grid gap-6 md:grid-cols-2">
+      <form onSubmit={submit} className="mx-auto max-w-5xl py-10">
+        <h1 className="text-4xl font-extrabold text-[#191C1E]">Bank details</h1>
+        <p className="mt-4 max-w-4xl text-lg leading-7 text-[#454557]">Configure where your payments will be received. This information will be used for automated invoicing and tax compliance.</p>
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
           <Field label="Bank Name" error={errors.bankName}><SelectField value={form.bankName} onChange={(bankName) => setForm({ ...form, bankName })} options={banks} placeholder="Select Bank" /></Field>
           <Field label="Account Number" error={errors.accountNumber}><input value={form.accountNumber} onChange={(e) => setForm({ ...form, accountNumber: e.target.value.replace(/\D/g, "").slice(0, 10) })} className={inputClass} placeholder="10-digit Number" /></Field>
           <div className="md:col-span-2"><Field label="Account Name" error={errors.accountName}><input value={form.accountName} onChange={(e) => setForm({ ...form, accountName: e.target.value })} className={inputClass} placeholder="Full legal business name" /></Field></div>
           <div className="md:col-span-2"><Field label="Preferred Payment Method" error={errors.paymentMethod}><SelectField value={form.paymentMethod} onChange={(paymentMethod) => setForm({ ...form, paymentMethod })} options={["Bank Transfer (Instant Settlement)", "Card Payment", "PayTraka Payment Link", "Manual Payment"]} placeholder="Select payment method" /></Field></div>
         </div>
-        <div className="mt-8 rounded-2xl border border-[#C5C4DA] bg-[#EEF1FF] p-7">
-          <h2 className="flex items-center gap-3 text-xl font-extrabold text-[#0001B1]"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0001B1] text-white">i</span> Automatic VAT Configuration</h2>
-          <p className="mt-4 text-lg leading-8 text-[#454557]">As per Nigerian tax law, PayTraka will automatically apply the <span className="font-bold text-[#0001B1]">7.5% VAT rate</span> to all generated invoices unless specifically exempted in your tax profile.</p>
+        <div className="mt-7 rounded-2xl border border-[#C5C4DA] bg-[#EEF1FF] p-5">
+          <h2 className="flex items-center gap-3 text-lg font-extrabold text-[#0001B1]"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0001B1] text-white">i</span> Automatic VAT Configuration</h2>
+          <p className="mt-3 text-base leading-7 text-[#454557]">As per Nigerian tax law, PayTraka will automatically apply the <span className="font-bold text-[#0001B1]">7.5% VAT rate</span> to all generated invoices unless specifically exempted in your tax profile.</p>
         </div>
-        <div className="mt-10 space-y-6">
+        <div className="mt-8 space-y-5">
           <Toggle label="Generate payment link" text="Include a PayTraka checkout link for faster client payments." checked={form.generatePaymentLink} onChange={(generatePaymentLink) => setForm({ ...form, generatePaymentLink })} />
           <Toggle label="Display bank details on invoice" text="Your NUBAN and Bank Name will appear in the invoice footer." checked={form.displayBankDetails} onChange={(displayBankDetails) => setForm({ ...form, displayBankDetails })} />
         </div>
@@ -711,7 +709,7 @@ export function PreferencesPage() {
 
   return (
     <AuthOnboardingLayout kind="preferences">
-      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col py-8">
+      <form onSubmit={submit} className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col py-6">
         <div className="flex items-center justify-between border-b border-[#C5C4DA] pb-6">
           <h1 className="text-3xl font-bold text-[#0001B1]">Preferences</h1>
           <div className="flex items-center gap-6">
@@ -719,7 +717,7 @@ export function PreferencesPage() {
             <span className="h-2 w-44 rounded-full bg-[#DFE3E8]"><span className="block h-full w-4/5 rounded-full bg-[#1117E8]" /></span>
           </div>
         </div>
-        <div className="grid flex-1 items-center gap-16 py-16 lg:grid-cols-2">
+        <div className="grid flex-1 items-center gap-12 py-10 lg:grid-cols-2">
           <section>
             <h2 className="text-2xl font-bold text-[#191C1E]">Brand Accent Color</h2>
             <p className="mt-5 max-w-lg text-lg font-semibold leading-7 text-[#454557]">This color will be applied to your invoice templates and dashboard.</p>
@@ -773,7 +771,7 @@ export function ReviewPage() {
 
   return (
     <AuthOnboardingLayout kind="review">
-      <form onSubmit={(event) => { event.preventDefault(); save({ completed: true, currentStep: "complete", preferences: { confirmedAccuracy: confirmed } }); router.push("/dashboard"); }} className="mx-auto max-w-6xl py-10">
+      <form onSubmit={(event) => { event.preventDefault(); save({ completed: true, currentStep: "complete", preferences: { confirmedAccuracy: confirmed } }); router.push("/dashboard"); }} className="mx-auto max-w-6xl py-8">
         <ProgressHeader step="STEP 5 OF 5" title="Review your setup" percent={100} />
         <div className="grid gap-5 md:grid-cols-2">
           {cards.map(([title, href, rows]) => (
@@ -810,11 +808,11 @@ export function DashboardPage() {
 
   return (
     <AuthOnboardingLayout kind="dashboard">
-      <section className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl content-center gap-8 py-12 lg:grid-cols-[1fr_1fr]">
+      <section className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl content-center gap-8 py-10 lg:grid-cols-[1fr_1fr]">
         <div className="lg:col-span-2">
           <span className="flex h-20 w-20 items-center justify-center rounded-full bg-[#DADEFD] text-[#0001B1]"><Check size={44} /></span>
-          <h1 className="mt-10 text-5xl font-extrabold text-[#191C1E]">Setup complete!</h1>
-          <p className="mt-5 text-2xl text-[#454557]">Your enterprise profile has been successfully verified.</p>
+          <h1 className="mt-8 text-4xl font-extrabold text-[#191C1E]">Setup complete!</h1>
+          <p className="mt-4 text-xl text-[#454557]">Your enterprise profile has been successfully verified.</p>
         </div>
         <article className="rounded-2xl border border-[#C5C4DA] bg-white p-8">
           <p className="text-sm font-bold uppercase tracking-widest text-[#757588]">Onboarding Summary</p>

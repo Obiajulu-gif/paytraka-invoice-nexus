@@ -276,18 +276,18 @@ function InvoiceMockup() {
 function HeroSection() {
   return (
     <section className="overflow-hidden bg-[radial-gradient(circle_at_72%_20%,#DADEFD_0,#F7F9FB_34%,#F7F9FB_100%)]">
-      <div className="mx-auto grid min-h-[640px] max-w-7xl items-center gap-12 px-5 py-20 md:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:py-24">
+      <div className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-7xl items-center gap-10 px-5 py-12 md:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:py-10">
         <div>
           <span className="inline-flex rounded-full border border-[#C5C4DA] bg-[#DADEFD]/70 px-4 py-2 text-sm font-semibold text-[#0001B1]">
             E-Invoicing Readiness Platform for Nigerian Businesses
           </span>
-          <h1 className="mt-7 max-w-3xl text-5xl font-extrabold leading-tight tracking-normal text-[#0001B1] md:text-6xl">
+          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-tight tracking-normal text-[#0001B1] md:text-5xl xl:text-6xl">
             Create, Validate & Submit E-Invoices with Confidence
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-[#454557]">
+          <p className="mt-5 max-w-2xl text-base leading-7 text-[#454557] lg:text-lg lg:leading-8">
             Streamline your transition to the new FIRS/NRS tax framework. PayTraka provides the tools to manage your sales, purchases, and compliance reporting in one unified readiness portal.
           </p>
-          <div className="mt-9 flex flex-col gap-4 sm:flex-row">
+          <div className="mt-7 flex flex-col gap-4 sm:flex-row">
             <ButtonLink href="#">Start Free Trial</ButtonLink>
             <ButtonLink href="#" variant="secondary">
               Book a Demo
