@@ -1,4 +1,6 @@
-import { Button, ComplianceAlert, FormShell, PageHeader } from "../ui";
+"use client";
+
+import { Button, ComplianceAlert, FormShell, notifyDashboard, PageHeader } from "../ui";
 
 export function CreateCustomerPage({ supplier = false }: { supplier?: boolean }) {
   const type = supplier ? "Supplier" : "Customer";
@@ -7,7 +9,7 @@ export function CreateCustomerPage({ supplier = false }: { supplier?: boolean })
     : [["Customer Type", ["Business", "Individual", "Government", "Non-profit"]], ["Basic Information", ["Customer Name", "Contact Person", "Email Address", "Phone Number", "Alternative Phone", "Category", "Status"]], ["Tax & Compliance Details", ["Customer TIN", "RC Number / BN Number", "VAT Registered", "VAT Number", "Buyer Type"]], ["Billing Address", ["Address Line 1", "Address Line 2", "City", "State", "Country", "Postal Code"]], ["Invoice & Payment Preferences", ["Payment Terms", "Preferred Currency", "Automatically email invoices to this customer", "Attach payment link to every invoice", "Default invoice note"]], ["Internal Notes & Documents", ["Private notes", "Upload certificate/contract/KYC documents"]]];
   return (
     <>
-      <PageHeader breadcrumb={`Dashboard / ${supplier ? "Suppliers" : "Customers"} / Create ${type}`} title={`Create ${type}`} subtitle={`Add ${supplier ? "vendor" : "buyer"} details for invoices, receipts, payment tracking, and e-invoicing validation.`} action={<><Button variant="secondary" href={`/dashboard/${supplier ? "suppliers" : "customers"}`}>Cancel</Button><Button variant="secondary">Save and Create Invoice</Button><Button>Save {type}</Button></>} />
+      <PageHeader breadcrumb={`Dashboard / ${supplier ? "Suppliers" : "Customers"} / Create ${type}`} title={`Create ${type}`} subtitle={`Add ${supplier ? "vendor" : "buyer"} details for invoices, receipts, payment tracking, and e-invoicing validation.`} action={<><Button variant="secondary" href={`/dashboard/${supplier ? "suppliers" : "customers"}`}>Cancel</Button><Button variant="secondary" href="/dashboard/invoices/create">Save and Create Invoice</Button><Button onClick={() => notifyDashboard(`${type} saved`)}>Save {type}</Button></>} />
       <ComplianceAlert title="Tax Identification Missing" text={`${type} TIN improves invoice validation and reduces failed FIRS/NRS submissions.`} />
       <FormShell title={`Create ${type}`} sideTitle="Readiness Checklist" sections={sections} buttons={[`Save ${type}`]} />
     </>

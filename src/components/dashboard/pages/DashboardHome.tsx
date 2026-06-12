@@ -20,10 +20,14 @@ export function DashboardHome() {
           <Card className="p-6">
             <h2 className="flex items-center gap-3 text-lg font-bold"><ClipboardCheck className="h-5 w-5 text-[#1117E8]" /> Missing Field Checker</h2>
             <div className="mt-5 space-y-3">
-              {[["Customer TIN Missing (4)", "Required for B2B tax compliance", "danger"], ["VAT Configurations", "7.5% standard rate applied", "success"], ["Product HSN/Tax Codes (12)", "Missing codes for some catalog items", "danger"]].map(([title, text, tone]) => (
+              {[
+                ["Customer TIN Missing (4)", "Required for B2B tax compliance", "danger", "/dashboard/customers"],
+                ["VAT Configurations", "7.5% standard rate applied", "success", "/dashboard/settings"],
+                ["Product HSN/Tax Codes (12)", "Missing codes for some catalog items", "danger", "/dashboard/products"],
+              ].map(([title, text, tone, href]) => (
                 <div key={title} className={`flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between ${tone === "danger" ? "border-red-100 bg-red-50" : "border-transparent bg-[#F1F4F8]"}`}>
                   <div className="flex gap-3">{tone === "danger" ? <AlertTriangle className="h-5 w-5 text-red-600" /> : <CheckCircle2 className="h-5 w-5 text-green-700" />}<div><p className="font-bold">{title}</p><p className="text-sm text-[#454557]">{text}</p></div></div>
-                  {tone === "danger" ? <Button variant="ghost">Fix now</Button> : null}
+                  {tone === "danger" ? <Button variant="ghost" href={href}>Fix now</Button> : null}
                 </div>
               ))}
             </div>
@@ -31,7 +35,7 @@ export function DashboardHome() {
           <DataTable
             title="Recent Sales Invoices"
             columns={["Invoice ID", "Customer", "Amount", "Customer Status", "FIRS Status", "Date", "Actions"]}
-            rows={recentSalesRows.map((item) => ({ "Invoice ID": <Link href="/dashboard/invoices/sales" className="font-bold text-[#0001B1]">{item.invoice}</Link>, Customer: item.customer, Amount: item.amount, "Customer Status": <StatusBadge>{item.customerStatus}</StatusBadge>, "FIRS Status": <StatusBadge>{item.firs}</StatusBadge>, Date: item.date, Actions: rowActions() }))}
+            rows={recentSalesRows.map((item) => ({ "Invoice ID": <Link href="/dashboard/invoices/sales" className="font-bold text-[#0001B1]">{item.invoice}</Link>, Customer: item.customer, Amount: item.amount, "Customer Status": <StatusBadge>{item.customerStatus}</StatusBadge>, "FIRS Status": <StatusBadge>{item.firs}</StatusBadge>, Date: item.date, Actions: rowActions(undefined, item.invoice) }))}
             actions={<Link href="/dashboard/invoices/sales" className="text-sm font-bold text-[#0001B1]">All Invoices</Link>}
           />
           <Card className="p-6">

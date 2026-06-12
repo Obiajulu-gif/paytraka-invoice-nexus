@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { getOnboardingState } from "@/lib/onboarding-store";
 import { PAYTRAKA_COLORS } from "./types";
 import { Sidebar } from "./Sidebar";
-import { StatusBadge } from "./ui";
+import { notifyDashboard, StatusBadge, Toast, useDashboardToasts } from "./ui";
 
 const stepRoutes: Record<string, string> = {
   "business-details": "/onboarding/business-details",
@@ -50,6 +50,8 @@ function EnvironmentToggle({ mode, setMode }: { mode: "test" | "live"; setMode: 
 }
 
 function Topbar({ mode, setMode, setSidebarOpen }: { mode: "test" | "live"; setMode: (mode: "test" | "live") => void; setSidebarOpen: (open: boolean) => void }) {
+  const router = useRouter();
+
   return (
     <header className="sticky top-0 z-30 border-b border-[#C5C4DA] bg-white/95 backdrop-blur">
       <div className="flex min-h-[64px] min-w-0 items-center gap-2 px-3 sm:min-h-[72px] sm:gap-4 sm:px-6 lg:px-8">
@@ -60,7 +62,11 @@ function Topbar({ mode, setMode, setSidebarOpen }: { mode: "test" | "live"; setM
         </div>
         <div className="ml-auto hidden sm:block"><EnvironmentToggle mode={mode} setMode={setMode} /></div>
         <StatusBadge tone={mode === "live" ? "success" : "primary"}>{mode === "live" ? "Live Mode" : "Sandbox"}</StatusBadge>
-        {[Bell, HelpCircle, Settings].map((Icon, index) => <button key={index} aria-label={["Notifications", "Help", "Settings"][index]} className="rounded-lg p-1.5 text-[#454557] hover:bg-[#F1F4F8] sm:p-2"><Icon className="h-5 w-5" /></button>)}
+        {[
+          { label: "Notifications", icon: Bell, action: () => notifyDashboard("No new compliance notifications") },
+          { label: "Help", icon: HelpCircle, action: () => router.push("/dashboard/support") },
+          { label: "Settings", icon: Settings, action: () => router.push("/dashboard/settings") },
+        ].map(({ label, icon: Icon, action }) => <button key={label} type="button" onClick={action} aria-label={label} className="rounded-lg p-1.5 text-[#454557] hover:bg-[#F1F4F8] sm:p-2"><Icon className="h-5 w-5" /></button>)}
         <div className="hidden items-center gap-3 border-l border-[#C5C4DA] pl-4 sm:flex">
           <div className="text-right"><p className="text-sm font-bold">Admin User</p><p className="text-xs text-[#757588]">Manage Profile</p></div>
           <div className="grid h-10 w-10 place-items-center rounded-full bg-[#DADEFD] font-bold text-[#0001B1]">AU</div>
@@ -74,6 +80,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const ready = useDashboardGuard();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mode, setMode] = useState<"test" | "live">("test");
+  const toastMessage = useDashboardToasts();
   if (!ready) return null;
 
   return (
@@ -83,6 +90,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         <Topbar mode={mode} setMode={setMode} setSidebarOpen={setSidebarOpen} />
         <main className="min-w-0 px-3 py-5 sm:px-6 sm:py-6 lg:px-8">{children}</main>
       </div>
+      <Toast show={Boolean(toastMessage)}>{toastMessage}</Toast>
     </div>
   );
 }

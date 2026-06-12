@@ -2,15 +2,22 @@
 
 import { CreditCard, Link2, Send, ShoppingCart } from "lucide-react";
 import { useState } from "react";
-import { Button, Card, DashboardFormModal, DataTable, Input, MetricCard, PageHeader, StatusBadge, Toast, rowActions } from "../ui";
+import { Button, Card, DashboardFormModal, DataTable, Input, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 export function PaymentLinksPage() {
-  const [toast, setToast] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [links, setLinks] = useState([
+    ["#PL-8921", "INV-2026-089", "Chioma Bakery", "₦450,000", "Paid"],
+    ["#PL-8922", "INV-2026-090", "Jireh Logistics", "₦1,200,000", "Active"],
+  ]);
+
+  function createPaymentLink() {
+    setLinks((current) => [["#PL-8923", "INV-2026-091", "New Lagos Customer", "₦450,000", "Active"], ...current]);
+  }
 
   function generateLink() {
-    setToast(true);
-    window.setTimeout(() => setToast(false), 2600);
+    createPaymentLink();
+    notifyDashboard("Payment Link Copied to Clipboard");
   }
 
   return (
@@ -23,6 +30,8 @@ export function PaymentLinksPage() {
         description="Generate a secure payment link for a selected invoice."
         submitLabel="Generate Link"
         fields={["Select Invoice", "Outstanding Balance", "Link Title", "Amount to Pay", "Expiry Date", "Customer Message"]}
+        onSubmit={createPaymentLink}
+        successMessage="Payment Link Copied to Clipboard"
       />
       <div className="mb-6 grid gap-5 md:grid-cols-4">
         <MetricCard label="Total Payment Links" value="82" icon={Link2} />
@@ -44,24 +53,20 @@ export function PaymentLinksPage() {
               <Input label="Provider and methods" wide value="Paystack, Flutterwave, Card, Transfer, USSD" />
               <Input label="Customer Message" wide />
             </div>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end"><Button variant="secondary">Discard</Button><Button type="button" onClick={generateLink}><Send className="h-4 w-4" /> Generate Link</Button></div>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end"><Button variant="secondary" onClick={() => notifyDashboard("Payment link draft discarded")}>Discard</Button><Button type="button" onClick={generateLink}><Send className="h-4 w-4" /> Generate Link</Button></div>
           </Card>
           <DataTable
             title="Recent Payment Links"
             columns={["Link ID", "Invoice #", "Customer", "Amount", "Status", "Actions"]}
-            rows={[
-              { "Link ID": "#PL-8921", "Invoice #": "INV-2026-089", Customer: <b>Chioma Bakery</b>, Amount: "₦450,000", Status: <StatusBadge>Paid</StatusBadge>, Actions: rowActions() },
-              { "Link ID": "#PL-8922", "Invoice #": "INV-2026-090", Customer: <b>Jireh Logistics</b>, Amount: "₦1,200,000", Status: <StatusBadge>Active</StatusBadge>, Actions: rowActions() },
-            ]}
+            rows={links.map(([id, invoice, customer, amount, status]) => ({ "Link ID": id, "Invoice #": invoice, Customer: <b>{customer}</b>, Amount: amount, Status: <StatusBadge>{status}</StatusBadge>, Actions: rowActions(undefined, id) }))}
           />
         </div>
         <aside className="space-y-6">
           <Card className="bg-[#1117E8] p-6 text-white"><h2 className="text-xl font-bold">Live Summary</h2><div className="mt-5 space-y-4 text-sm"><p className="flex flex-col gap-1 sm:flex-row sm:justify-between">Total Outstanding <b>₦2,450,000.00</b></p><p className="flex flex-col gap-1 sm:flex-row sm:justify-between">Links Generated Today <b>12</b></p><p className="flex flex-col gap-1 sm:flex-row sm:justify-between">Expected Inflow <b>₦8,940,000.00</b></p></div></Card>
-          <Card className="p-6 text-center"><ShoppingCart className="mx-auto h-10 w-10 text-[#1117E8]" /><h3 className="mt-5 text-xl font-bold">PayTraka SME Store</h3><p className="text-sm text-[#454557]">Invoice #INV-2026-089</p><div className="my-5 rounded-xl border border-[#C5C4DA] p-5"><p className="text-xs uppercase text-[#454557]">Amount Due</p><p className="text-3xl font-extrabold text-[#0001B1]">₦450,000</p></div><Button className="w-full">Pay Now</Button></Card>
+          <Card className="p-6 text-center"><ShoppingCart className="mx-auto h-10 w-10 text-[#1117E8]" /><h3 className="mt-5 text-xl font-bold">PayTraka SME Store</h3><p className="text-sm text-[#454557]">Invoice #INV-2026-089</p><div className="my-5 rounded-xl border border-[#C5C4DA] p-5"><p className="text-xs uppercase text-[#454557]">Amount Due</p><p className="text-3xl font-extrabold text-[#0001B1]">₦450,000</p></div><Button className="w-full" onClick={() => notifyDashboard("Customer payment checkout opened")}>Pay Now</Button></Card>
           <Card className="bg-[#EAEDFF] p-5"><h3 className="font-bold text-[#0001B1]">Pro Tip</h3><p className="mt-2 text-sm leading-6 text-[#454557]">Setting an expiry date on payment links increases conversion by 24% for Nigerian B2B customers.</p></Card>
         </aside>
       </div>
-      <Toast show={toast}>Payment Link Copied to Clipboard</Toast>
     </>
   );
 }

@@ -1,11 +1,14 @@
+"use client";
+
 import { AlertTriangle, ChevronDown, Plus, Trash2 } from "lucide-react";
-import { Button, Card, ComplianceAlert, FormShell, PageHeader } from "../ui";
+import { useState } from "react";
+import { Button, Card, ComplianceAlert, FormShell, notifyDashboard, PageHeader } from "../ui";
 
 function SalesInvoiceBuilder() {
-  const lineItems = [
+  const [lineItems, setLineItems] = useState([
     ["Enterprise Software License", "1", "450,000.00", "7.5% Standard", "₦450,000.00"],
     ["On-site Training Session", "2", "75,000.00", "7.5% Standard", "₦150,000.00"],
-  ];
+  ]);
 
   return (
     <>
@@ -13,7 +16,7 @@ function SalesInvoiceBuilder() {
         title="Create Sales Invoice"
         subtitle="Build a compliant invoice with customer details, line items, VAT, and submission readiness."
         breadcrumb="Dashboard / Invoices / Create Invoice"
-        action={<><Button variant="secondary">Save as Draft</Button><Button>Continue</Button></>}
+        action={<><Button variant="secondary" onClick={() => notifyDashboard("Sales invoice draft saved")}>Save as Draft</Button><Button onClick={() => notifyDashboard("Invoice summary ready for review")}>Continue</Button></>}
       />
       <Card className="overflow-hidden">
         <div className="border-b border-[#C5C4DA] bg-[#F7F9FB] p-5">
@@ -35,19 +38,19 @@ function SalesInvoiceBuilder() {
                 <tr>{["Product / Service", "Qty", "Unit Price (₦)", "VAT Rate", "Amount", ""].map((column) => <th key={column} className="px-5 py-4">{column}</th>)}</tr>
               </thead>
               <tbody className="divide-y divide-[#DCE0E8]">
-                {lineItems.map(([product, qty, price, vat, amount]) => (
+                {lineItems.map(([product, qty, price, vat, amount], index) => (
                   <tr key={product}>
                     <td className="px-5 py-5 font-semibold">{product}</td>
                     <td className="px-5 py-5">{qty}</td>
                     <td className="px-5 py-5">{price}</td>
                     <td className="px-5 py-5"><span className="inline-flex items-center gap-2">{vat}<ChevronDown className="h-4 w-4" /></span></td>
                     <td className="px-5 py-5 font-bold">{amount}</td>
-                    <td className="px-5 py-5 text-red-600"><Trash2 className="h-4 w-4" /></td>
+                    <td className="px-5 py-5 text-red-600"><button type="button" onClick={() => { setLineItems((current) => current.filter((_, itemIndex) => itemIndex !== index)); notifyDashboard(`${product} removed`); }} aria-label={`Remove ${product}`}><Trash2 className="h-4 w-4" /></button></td>
                   </tr>
                 ))}
               </tbody>
               <tfoot className="bg-[#F1F4F8]">
-                <tr><td colSpan={6} className="px-5 py-4 text-center"><Button variant="ghost"><Plus className="h-4 w-4" /> Add New Item</Button></td></tr>
+                <tr><td colSpan={6} className="px-5 py-4 text-center"><Button variant="ghost" onClick={() => { setLineItems((current) => [...current, ["New Consulting Service", "1", "0.00", "7.5% Standard", "₦0.00"]]); notifyDashboard("New invoice line item added"); }}><Plus className="h-4 w-4" /> Add New Item</Button></td></tr>
               </tfoot>
             </table>
           </div>
@@ -58,8 +61,8 @@ function SalesInvoiceBuilder() {
           </div>
         </div>
         <div className="flex flex-col gap-3 border-t border-[#C5C4DA] bg-[#F7F9FB] p-5 sm:flex-row sm:items-center sm:justify-between">
-          <Button variant="secondary">Back</Button>
-          <div className="flex flex-col gap-3 sm:flex-row"><Button variant="secondary">Save as Draft</Button><Button>Continue</Button></div>
+          <Button variant="secondary" href="/dashboard/invoices/sales">Back</Button>
+          <div className="flex flex-col gap-3 sm:flex-row"><Button variant="secondary" onClick={() => notifyDashboard("Sales invoice draft saved")}>Save as Draft</Button><Button onClick={() => notifyDashboard("Invoice summary ready for review")}>Continue</Button></div>
         </div>
       </Card>
     </>
@@ -85,7 +88,7 @@ export function CreateInvoicePage({ purchase = false }: { purchase?: boolean }) 
         title="Create Purchase Invoice"
         subtitle="Record supplier invoices, expenses, VAT, payment terms, and purchase documentation."
         breadcrumb="Dashboard / Invoices / Create Purchase Invoice"
-        action={<><Button variant="secondary">Cancel</Button><Button variant="secondary">Save as Draft</Button><Button>Save Purchase Invoice</Button></>}
+        action={<><Button variant="secondary" href="/dashboard/invoices/purchase">Cancel</Button><Button variant="secondary" onClick={() => notifyDashboard("Purchase invoice draft saved")}>Save as Draft</Button><Button onClick={() => notifyDashboard("Purchase invoice saved")}>Save Purchase Invoice</Button></>}
       />
       <ComplianceAlert
         title="Supplier TIN is missing"
