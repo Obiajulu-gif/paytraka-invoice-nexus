@@ -26,12 +26,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { resetOnboardingState } from "@/lib/onboarding-store";
 
 const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: Home },
-  { label: "Create Invoice", href: "/dashboard/invoices/create", icon: FilePlus2 },
-  { label: "Validate Invoice Data", href: "/dashboard/compliance", icon: ClipboardCheck },
-  { label: "Send Invoices", href: "/dashboard/invoices/sales", icon: Send },
-  { label: "Submit to FIRS/NRS", href: "/dashboard/compliance", icon: Landmark },
-  { label: "Submission Status", href: "/dashboard/compliance", icon: FileCheck2 },
+  { label: "Dashboard", href: "/dashboard", icon: Home, matches: ["/dashboard"] },
+  { label: "Create Invoice", href: "/dashboard/invoices/create", icon: FilePlus2, matches: ["/dashboard/invoices/create"] },
+  { label: "Validate Invoice Data", href: "/dashboard/compliance/validate", icon: ClipboardCheck, matches: ["/dashboard/compliance", "/dashboard/compliance/validate"] },
+  { label: "Send Invoices", href: "/dashboard/invoices/sales", icon: Send, matches: ["/dashboard/invoices", "/dashboard/invoices/sales"] },
+  { label: "Submit to FIRS/NRS", href: "/dashboard/compliance/submit", icon: Landmark, matches: ["/dashboard/compliance/submit"] },
+  { label: "Submission Status", href: "/dashboard/compliance/status", icon: FileCheck2, matches: ["/dashboard/compliance/status"] },
   { label: "Customers", href: "/dashboard/customers", icon: Users },
   { label: "Suppliers", href: "/dashboard/suppliers", icon: Truck },
   { label: "Receipts", href: "/dashboard/receipts", icon: ReceiptText },
@@ -42,6 +42,11 @@ const navItems = [
   { label: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
   { label: "Support", href: "/dashboard/support", icon: MessageSquare },
 ];
+
+function isActiveRoute(pathname: string, href: string, matches?: string[]) {
+  if (matches) return matches.some((match) => pathname === match);
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {
   const pathname = usePathname();
@@ -63,8 +68,8 @@ export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: bool
       <p className="mt-1 text-sm font-semibold text-[#454557]">Business Account</p>
 
       <nav className="mt-7 flex-1 space-y-1 overflow-y-auto pr-1">
-        {navItems.map(({ label, href, icon: Icon }) => {
-          const active = href === "/dashboard" ? pathname === href : pathname.startsWith(href);
+        {navItems.map(({ label, href, icon: Icon, matches }) => {
+          const active = isActiveRoute(pathname, href, matches);
           return (
             <Link key={label} href={href} onClick={() => setOpen(false)} className={`relative flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition ${active ? "bg-[#DADEFD] text-[#0001B1]" : "text-[#454557] hover:bg-[#F1F4F8]"}`}>
               <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />

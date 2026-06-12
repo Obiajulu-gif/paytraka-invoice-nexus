@@ -3,7 +3,7 @@
 import { AlertTriangle, Download, Filter, Plus, ShieldCheck, Truck, Users } from "lucide-react";
 import { useState } from "react";
 import { customerRows, supplierRows } from "../data";
-import { AddCustomerModal, Button, Card, ComplianceAlert, DataTable, MetricCard, PageHeader, StatusBadge, rowActions } from "../ui";
+import { Button, Card, ComplianceAlert, DashboardFormModal, DataTable, MetricCard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
   const isCustomers = type === "customers";
@@ -14,15 +14,16 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
       <PageHeader
         title={isCustomers ? "Customer Directory" : "Supplier Directory"}
         subtitle={isCustomers ? "Manage client tax identities and billing records." : "Manage vendor compliance records and procurement logs."}
-        action={isCustomers ? (
-          <button type="button" onClick={() => setModalOpen(true)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#1117E8] px-4 text-sm font-bold text-white shadow-[0_12px_28px_rgba(17,23,232,0.2)] hover:bg-[#0001B1]">
-            <Plus className="h-4 w-4" /> Add Customer
-          </button>
-        ) : (
-          <Button href="/dashboard/suppliers/create"><Plus className="h-4 w-4" /> Add Supplier</Button>
-        )}
+        action={<Button onClick={() => setModalOpen(true)}><Plus className="h-4 w-4" /> {isCustomers ? "Add Customer" : "Add Supplier"}</Button>}
       />
-      <AddCustomerModal open={modalOpen} onClose={() => setModalOpen(false)} />
+      <DashboardFormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={isCustomers ? "Add New Customer" : "Add New Supplier"}
+        description={isCustomers ? "Create a customer record for invoicing, receipts, and TIN validation." : "Create a supplier record for procurement and VAT claim readiness."}
+        submitLabel={isCustomers ? "Save Customer" : "Save Supplier"}
+        fields={isCustomers ? ["Customer name", "Email", "Phone", "Address", "Tax ID/TIN"] : ["Supplier name", "Email", "Phone", "Address", "Tax ID/TIN"]}
+      />
       {!isCustomers ? <ComplianceAlert title="Compliance Gap Identified" text="8 suppliers are missing valid Tax Identification Numbers (TIN). Future invoices from these vendors will be flagged by FIRS." /> : null}
       <div className="mb-6 grid gap-5 md:grid-cols-3">
         <MetricCard label={isCustomers ? "Total Active Clients" : "Total Active"} value={isCustomers ? "1,284" : "128"} meta={isCustomers ? "+12% from last month" : "Verified vendors"} icon={isCustomers ? Users : Truck} />

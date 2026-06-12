@@ -2,10 +2,11 @@
 
 import { CreditCard, Link2, Send, ShoppingCart } from "lucide-react";
 import { useState } from "react";
-import { Button, Card, DataTable, Input, MetricCard, PageHeader, StatusBadge, Toast, rowActions } from "../ui";
+import { Button, Card, DashboardFormModal, DataTable, Input, MetricCard, PageHeader, StatusBadge, Toast, rowActions } from "../ui";
 
 export function PaymentLinksPage() {
   const [toast, setToast] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   function generateLink() {
     setToast(true);
@@ -14,7 +15,15 @@ export function PaymentLinksPage() {
 
   return (
     <>
-      <PageHeader title="Payment Links" subtitle="Generate secure payment links for invoices and track customer payments." />
+      <PageHeader title="Payment Links" subtitle="Generate secure payment links for invoices and track customer payments." action={<Button onClick={() => setModalOpen(true)}><Link2 className="h-4 w-4" /> Create Payment Link</Button>} />
+      <DashboardFormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Create Payment Link"
+        description="Generate a secure payment link for a selected invoice."
+        submitLabel="Generate Link"
+        fields={["Select Invoice", "Outstanding Balance", "Link Title", "Amount to Pay", "Expiry Date", "Customer Message"]}
+      />
       <div className="mb-6 grid gap-5 md:grid-cols-4">
         <MetricCard label="Total Payment Links" value="82" icon={Link2} />
         <MetricCard label="Active Links" value="35" tone="success" icon={CreditCard} />

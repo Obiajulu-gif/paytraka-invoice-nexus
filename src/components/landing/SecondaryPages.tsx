@@ -24,12 +24,11 @@ import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 
-type PageKey = "home" | "product" | "pricing" | "solutions" | "resources" | "company";
+type PageKey = "home" | "product" | "solutions" | "resources" | "company";
 
 const navLinks: Array<{ label: string; href: string; key: PageKey }> = [
   { label: "Home", href: "/", key: "home" },
   { label: "Product", href: "/product", key: "product" },
-  { label: "Pricing", href: "/pricing", key: "pricing" },
   { label: "Solutions", href: "/solutions", key: "solutions" },
   { label: "Resources", href: "/resources", key: "resources" },
   { label: "Company", href: "/company", key: "company" },
@@ -312,65 +311,6 @@ export function SolutionsPage() {
                 <div className="rounded-lg border border-white/15 bg-white/5 p-4 font-bold">Automated Receipt Retrieval</div>
               </div>
             </article>
-          </div>
-        </section>
-      </main>
-      <SimpleFooter />
-    </div>
-  );
-}
-
-export function PricingPage() {
-  const plans = [
-    ["Starter", "Essential invoicing tools for emerging SMEs.", "₦0", "/month", ["Up to 50 invoices/month", "Basic customer directory", "Standard PDF exports"], false],
-    ["Compliance Pro", "Automated validation & tracking for growing businesses.", "₦15,000", "/month", ["Direct FIRS API Integration", "Unlimited invoices", "Real-time status badges", "Automated tax calculations"], true],
-    ["Enterprise", "Multi-client management for financial consultants.", "Custom", "", ["Everything in Pro", "Multi-entity dashboard", "Dedicated account manager", "Custom API limits"], false],
-  ] as const;
-
-  return (
-    <div className="min-h-screen bg-white">
-      <SiteNavbar active="pricing" />
-      <main className="px-5 py-24 md:px-8">
-        <section className="mx-auto max-w-7xl text-center">
-          <h1 className="mx-auto max-w-5xl text-5xl font-extrabold leading-tight text-[#121B3A] md:text-6xl">
-            Transparent pricing for <span className="text-[#0001B1]">seamless compliance.</span>
-          </h1>
-          <p className="mx-auto mt-7 max-w-3xl text-xl leading-8 text-[#66728A]">
-            Choose the right plan to align your invoicing with FIRS regulations. Simple, predictable, and built for businesses scaling in Nigeria.
-          </p>
-          <div className="mt-20 grid gap-8 text-left lg:grid-cols-3">
-            {plans.map(([name, body, price, suffix, features, popular]) => (
-              <article key={name} className={cx("relative rounded-xl border bg-white p-8", popular ? "border-[#1117E8] shadow-[0_18px_45px_rgba(17,23,232,0.15)]" : "border-[#D7DEE8]")}>
-                {popular ? <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1117E8] px-5 py-1 text-xs font-bold tracking-wide text-white">MOST POPULAR</span> : null}
-                <h2 className="text-3xl font-bold text-[#121B3A]">{name}</h2>
-                <p className="mt-4 text-lg leading-7 text-[#66728A]">{body}</p>
-                <p className="mt-8 text-[#121B3A]"><span className="text-4xl font-extrabold">{price}</span><span className="ml-2 text-base text-[#66728A]">{suffix}</span></p>
-                <ul className="mt-8 space-y-4">
-                  {features.map((feature) => (
-                    <li key={feature} className="flex items-center gap-3 text-base text-[#454557]">
-                      <CheckCircle2 className="h-5 w-5 text-[#1117E8]" aria-hidden="true" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <ActionLink href="#contact" variant={popular ? "primary" : "secondary"}>{popular ? "Get started" : name === "Enterprise" ? "Contact Sales" : "Get started"}</ActionLink>
-              </article>
-            ))}
-          </div>
-        </section>
-        <section className="mx-auto mt-24 max-w-4xl border-t border-[#D7DEE8] pt-20">
-          <h2 className="text-center text-4xl font-bold text-[#121B3A]">Frequently Asked Questions</h2>
-          <div className="mt-10 space-y-5">
-            {[
-              ["How does FIRS validation work?", "On the Compliance Pro plan, PayTraka automatically routes your generated invoices through approved integration pathways to receive validation before sending to your client."],
-              ["Can I upgrade from Starter to Pro later?", "Yes, you can seamlessly upgrade at any point. Your existing invoicing data will remain available for compliance tracking."],
-              ["Is my financial data secure?", "Absolutely. We use strong encryption patterns and maintain strict adherence to Nigerian data protection expectations."],
-            ].map(([q, a]) => (
-              <article key={q} className="rounded-lg border border-[#D7DEE8] bg-white p-6">
-                <h3 className="font-bold text-[#121B3A]">{q}</h3>
-                <p className="mt-4 text-lg leading-8 text-[#66728A]">{a}</p>
-              </article>
-            ))}
           </div>
         </section>
       </main>

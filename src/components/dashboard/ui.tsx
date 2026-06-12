@@ -164,6 +164,33 @@ export function CheckLine({ label }: { label: string }) {
   return <label className="mt-4 flex items-center gap-3 text-sm font-semibold"><input type="checkbox" defaultChecked className="h-4 w-4 accent-[#1117E8]" /> {label}</label>;
 }
 
+export function DashboardFormModal({ open, title, description, fields, onClose, submitLabel = "Save" }: { open: boolean; title: string; description: string; fields: string[]; onClose: () => void; submitLabel?: string }) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[70] grid place-items-center bg-[#191C1E]/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="dashboard-modal-title">
+      <Card className="max-h-[90vh] w-full max-w-2xl overflow-hidden shadow-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-6">
+          <div>
+            <h2 id="dashboard-modal-title" className="text-2xl font-bold text-[#191C1E]">{title}</h2>
+            <p className="mt-1 text-sm text-[#454557]">{description}</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label={`Close ${title} modal`} className="rounded-lg p-2 text-[#454557] hover:bg-white"><X className="h-5 w-5" /></button>
+        </div>
+        <div className="max-h-[62vh] overflow-y-auto p-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            {fields.map((field) => <FieldControl key={field} field={field} />)}
+          </div>
+        </div>
+        <div className="flex flex-col gap-3 border-t border-[#C5C4DA] bg-white p-6 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{submitLabel}</Button>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 function FieldControl({ field }: { field: string }) {
   if (field.toLowerCase().includes("upload")) {
     return <div className="md:col-span-2 rounded-xl border border-dashed border-[#C5C4DA] bg-[#F7F9FB] p-8 text-center"><Upload className="mx-auto h-8 w-8 text-[#757588]" /><p className="mt-3 font-bold">Click to upload or drag and drop</p><p className="mt-1 text-sm text-[#757588]">TIN certificate, contract, or KYC documents (PDF, JPG up to 10MB)</p></div>;
@@ -213,10 +240,10 @@ export function Toast({ show, children }: { show: boolean; children: React.React
   return <div className="fixed bottom-6 right-6 z-[80] rounded-xl bg-[#191C1E] px-5 py-4 text-sm font-semibold text-white shadow-2xl"><span className="flex items-center gap-3"><CheckCircle2 className="h-5 w-5 text-green-400" /> {children}</span></div>;
 }
 
-export function GenericTablePage({ title, subtitle, button, metrics, tableTitle, columns, data, bottom = false }: { title: string; subtitle: string; button: string; metrics: string[][]; tableTitle: string; columns: string[]; data: string[][]; bottom?: boolean }) {
+export function GenericTablePage({ title, subtitle, button, metrics, tableTitle, columns, data, bottom = false, onPrimaryAction }: { title: string; subtitle: string; button: string; metrics: string[][]; tableTitle: string; columns: string[]; data: string[][]; bottom?: boolean; onPrimaryAction?: () => void }) {
   return (
     <>
-      <PageHeader title={title} subtitle={subtitle} action={<Button><Plus className="h-4 w-4" /> {button.replace(/^\+ /, "")}</Button>} />
+      <PageHeader title={title} subtitle={subtitle} action={<Button onClick={onPrimaryAction}><Plus className="h-4 w-4" /> {button.replace(/^\+ /, "")}</Button>} />
       <div className="mb-6 grid gap-5 md:grid-cols-3 xl:grid-cols-4">{metrics.map(([label, value]) => <MetricCard key={label} label={label} value={value} icon={BarChart3} />)}</div>
       <DataTable title={tableTitle} columns={columns} rows={data.map((row) => Object.fromEntries(columns.map((column, index) => [column, column === "Status" || column.includes("Status") ? <StatusBadge>{row[index]}</StatusBadge> : column === "Actions" ? rowActions() : row[index] ?? rowActions()])) as TableRow)} />
       {bottom ? <BottomInsight title={`${title} Health`} asideTitle="Tax Compliance Tip" /> : null}

@@ -1,11 +1,24 @@
+"use client";
+
 import { Plus } from "lucide-react";
+import { useState } from "react";
 import { productRows } from "../data";
-import { BottomInsight, Button, Card, DataTable, MetricCard, PageHeader, StatusBadge, rowActions } from "../ui";
+import { BottomInsight, Button, Card, DashboardFormModal, DataTable, MetricCard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 export function ProductsPage() {
+  const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <>
-      <PageHeader title="Products & Services" subtitle="Inventory › Catalog Management" action={<Button><Plus className="h-4 w-4" /> Add New Item</Button>} />
+      <PageHeader title="Products & Services" subtitle="Inventory › Catalog Management" action={<Button onClick={() => setModalOpen(true)}><Plus className="h-4 w-4" /> Add New Item</Button>} />
+      <DashboardFormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Add New Item"
+        description="Add a product or service with unit price and VAT details."
+        submitLabel="Save Item"
+        fields={["Item/Product name", "SKU or code", "Description", "Unit price", "Tax/VAT rate", "Stock quantity"]}
+      />
       <div className="mb-6 grid gap-5 md:grid-cols-3">
         <MetricCard label="Total Items" value="1,284" meta="+12% this month" />
         <MetricCard label="Active Services" value="432" meta="Live in marketplace" />

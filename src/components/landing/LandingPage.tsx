@@ -28,7 +28,6 @@ import type { LucideIcon } from "lucide-react";
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "Product", href: "/product" },
-  { label: "Pricing", href: "/pricing" },
   { label: "Solutions", href: "/solutions" },
   { label: "Resources", href: "/resources" },
   { label: "Company", href: "/company" },
@@ -79,33 +78,6 @@ const features: Array<{ icon: LucideIcon; title: string; description: string }> 
   { icon: Gauge, title: "Live Tracking", description: "Visual confirmation of FIRS/NRS portal acceptance." },
   { icon: FileCheck2, title: "Digital Receipts", description: "Generate professional, FIRS-format digital receipts." },
   { icon: LayoutDashboard, title: "VAT Reports", description: "Instant generation of summary sheets for audit." },
-];
-
-const pricing = [
-  {
-    name: "Starter",
-    price: "₦5k",
-    suffix: "/mo",
-    features: ["Up to 50 Invoices/mo", "Basic Validation", "1 User Access"],
-    cta: "Choose Starter",
-    highlighted: false,
-  },
-  {
-    name: "Compliance Pro",
-    price: "₦15k",
-    suffix: "/mo",
-    features: ["Unlimited Invoices", "Priority FIRS Submission", "5 Team Members", "Advance Reports"],
-    cta: "Choose Pro",
-    highlighted: true,
-  },
-  {
-    name: "Consultant",
-    price: "Custom",
-    suffix: "",
-    features: ["Manage Multi-clients", "White-label Reports", "API Integration Access"],
-    cta: "Talk to Sales",
-    highlighted: false,
-  },
 ];
 
 const faqs = [
@@ -484,49 +456,6 @@ function ConsultantsSection() {
   );
 }
 
-function PricingSection() {
-  return (
-    <section className="bg-[#F7F9FB] py-16 md:py-24">
-      <div className="reveal-up mx-auto max-w-7xl px-5 md:px-8">
-        <SectionHeader
-          title="Ready for every stage of your journey"
-          description="Simple, transparent pricing for Nigerian businesses of all sizes."
-        />
-        <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
-          {pricing.map((plan) => (
-            <article
-              key={plan.name}
-              className={`relative rounded-xl border bg-white p-8 ${plan.highlighted ? "border-[#1117E8] shadow-[0_20px_45px_rgba(17,23,232,0.18)]" : "border-[#C5C4DA]"}`}
-            >
-              {plan.highlighted ? (
-                <span className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1117E8] px-4 py-1 text-xs font-extrabold text-white">
-                  MOST POPULAR
-                </span>
-              ) : null}
-              <h3 className="text-lg font-bold text-[#191C1E]">{plan.name}</h3>
-              <p className="mt-6 text-[#191C1E]">
-                <span className="text-4xl font-extrabold">{plan.price}</span>
-                {plan.suffix ? <span className="ml-1 text-sm text-[#757588]">{plan.suffix}</span> : null}
-              </p>
-              <ul className="mt-7 space-y-3">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex gap-2 text-sm text-[#454557]">
-                    <Check className="h-5 w-5 shrink-0 text-[#1117E8]" aria-hidden="true" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <ButtonLink href="#" variant={plan.highlighted ? "primary" : "secondary"} className="mt-10 w-full">
-                {plan.cta}
-              </ButtonLink>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function FAQSection() {
   return (
     <section className="bg-white py-16 md:py-20">
@@ -600,7 +529,6 @@ function Footer() {
           title="Product"
           links={[
             ["Features", "/product"],
-            ["Pricing", "/pricing"],
             ["For Consultants", "/company#contact"],
           ]}
         />
@@ -660,7 +588,6 @@ export function LandingPage() {
         <WorkflowSection />
         <FeatureGridSection />
         <ConsultantsSection />
-        <PricingSection />
         <FAQSection />
         <ComplianceNotice />
         <FinalCTA />
