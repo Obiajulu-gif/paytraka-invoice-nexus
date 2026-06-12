@@ -1,15 +1,10 @@
 import {
-  ArrowRight,
   BadgeCheck,
   Banknote,
-  BellRing,
   BookOpen,
   Boxes,
-  Building2,
   Check,
   CircleAlert,
-  ClipboardCheck,
-  DatabaseZap,
   FileCheck2,
   FileText,
   FileWarning,
@@ -81,13 +76,9 @@ const features: Array<{ icon: LucideIcon; title: string; description: string }> 
   { icon: Banknote, title: "Sales Management", description: "Track every revenue stream with compliant categorization." },
   { icon: ReceiptText, title: "Purchase Ledger", description: "Record incoming invoices to claim input tax credits." },
   { icon: Boxes, title: "Product Catalog", description: "Standardize goods/services with correct HS codes." },
-  { icon: ShieldCheck, title: "Auto-Validation", description: "Real-time flagging of syntax or calculation errors." },
   { icon: Gauge, title: "Live Tracking", description: "Visual confirmation of FIRS/NRS portal acceptance." },
-  { icon: TestTube2, title: "Test/Live Modes", description: "Safe sandbox for training before actual submission." },
   { icon: FileCheck2, title: "Digital Receipts", description: "Generate professional, FIRS-format digital receipts." },
   { icon: LayoutDashboard, title: "VAT Reports", description: "Instant generation of summary sheets for audit." },
-  { icon: FileText, title: "Smart Templates", description: "Industry-specific layouts for hotels, retail, etc." },
-  { icon: Headphones, title: "Expert Support", description: "Access to Nigerian tax consultants via live chat." },
 ];
 
 const pricing = [
@@ -184,7 +175,7 @@ function Navbar() {
     <header className="sticky top-0 z-50 border-b border-[#C5C4DA]/60 bg-white/90 backdrop-blur-xl">
       <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8" aria-label="Main navigation">
         <Link href="/" className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8]">
-          <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={130} height={36} className="h-8 w-auto" priority />
+          <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={170} height={48} className="h-9 w-auto object-contain md:h-11" priority />
         </Link>
         <div className="hidden items-center gap-8 lg:flex">
           {navLinks.map((link) => (
@@ -194,10 +185,10 @@ function Navbar() {
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <a href="/company#contact" className="hidden text-sm font-semibold text-[#191C1E] transition hover:text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8] sm:inline-flex">
+          <a href="/login" className="hidden text-sm font-semibold text-[#191C1E] transition hover:text-[#0001B1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1117E8] sm:inline-flex">
             Sign in
           </a>
-          <ButtonLink className="min-h-10 px-5 text-xs" href="/company#contact">
+          <ButtonLink className="min-h-10 px-5 text-xs" href="/signup">
             Get started
           </ButtonLink>
           <details className="group relative lg:hidden">
@@ -210,8 +201,11 @@ function Navbar() {
                   {link.label}
                 </a>
               ))}
-              <a href="/company#contact" className="block rounded-lg px-3 py-3 text-sm font-medium text-[#191C1E] hover:bg-[#F7F9FB] hover:text-[#0001B1]">
+              <a href="/login" className="block rounded-lg px-3 py-3 text-sm font-medium text-[#191C1E] hover:bg-[#F7F9FB] hover:text-[#0001B1]">
                 Sign in
+              </a>
+              <a href="/signup" className="block rounded-lg px-3 py-3 text-sm font-bold text-[#0001B1] hover:bg-[#F7F9FB]">
+                Get started
               </a>
             </div>
           </details>
@@ -222,50 +216,80 @@ function Navbar() {
 }
 
 function InvoiceMockup() {
-  const timeline = ["Created", "Validated", "Sent", "Submitted"];
-
   return (
-    <div className="relative mx-auto w-full max-w-xl rounded-2xl border border-white/80 bg-white/85 p-5 shadow-[0_24px_60px_rgba(25,28,30,0.18)] backdrop-blur md:p-7">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-lg font-semibold text-[#191C1E]">Invoice Detail</p>
-          <p className="mt-1 text-sm text-[#454557]">INV-2026-0042</p>
-        </div>
-        <span className="rounded-full bg-[#DADEFD] px-4 py-2 text-xs font-bold text-[#0001B1]">Status: Ready</span>
+    <div className="relative mx-auto w-full max-w-xl">
+      <div className="absolute -right-6 top-8 hidden rounded-full bg-[#1117E8] px-4 py-3 text-sm font-black text-white shadow-xl lg:block">
+        NRS
       </div>
-      <div className="mt-8">
-        <p className="text-xs font-semibold uppercase text-[#757588]">Client</p>
-        <p className="mt-2 text-xl font-bold text-[#0001B1]">Abuja Prime Hotels Ltd</p>
-        <p className="mt-1 text-sm text-[#454557]">VAT Reg: NG-0012938481</p>
+      <div className="absolute -right-12 top-28 hidden h-16 w-16 items-center justify-center rounded-full bg-[#0001B1] text-xl font-black text-white shadow-xl lg:flex">
+        VAT
       </div>
-      <div className="mt-6 grid grid-cols-2 gap-3 rounded-xl bg-[#F1F3F6] p-5">
-        <div>
-          <p className="text-xs font-semibold text-[#757588]">Total Amount Due</p>
-          <p className="mt-1 text-3xl font-extrabold text-[#191C1E]">₦850,000.00</p>
+      <div className="overflow-hidden rounded-2xl border border-[#D7DEE8] bg-white shadow-[0_28px_70px_rgba(25,28,30,0.18)]">
+        <div className="flex items-center gap-3 bg-[#202827] px-5 py-3">
+          <span className="h-3 w-3 rounded-full bg-white/25" />
+          <span className="h-3 w-3 rounded-full bg-white/25" />
+          <span className="h-3 w-3 rounded-full bg-white/25" />
+          <span className="ml-3 rounded bg-white/10 px-4 py-1 text-xs font-semibold text-white/80">paytraka.com/dashboard</span>
         </div>
-        <div className="text-right">
-          <p className="text-xs font-semibold text-[#757588]">Tax Amount</p>
-          <p className="mt-1 text-lg font-bold text-[#191C1E]">₦63,750.00</p>
-        </div>
-      </div>
-      <div className="mt-7">
-        <p className="text-xs font-semibold uppercase text-[#757588]">Submission Timeline</p>
-        <div className="relative mt-6 grid grid-cols-4 gap-2">
-          <div className="absolute left-[12%] right-[12%] top-3 h-1 bg-[#DADEFD]" aria-hidden="true" />
-          <div className="absolute left-[12%] right-[37%] top-3 h-1 bg-[#1117E8]" aria-hidden="true" />
-          {timeline.map((item, index) => (
-            <div key={item} className="relative text-center">
-              <span className={`mx-auto block h-7 w-7 rounded-full border-4 border-white ${index < 3 ? "bg-[#1117E8]" : "bg-[#DADEFD]"}`} />
-              <span className="mt-2 block text-xs font-semibold text-[#454557]">{item}</span>
+        <div className="grid grid-cols-[72px_1fr]">
+          <div className="border-r border-[#D7DEE8] bg-[#F2F4FF] p-4">
+            <span className="block h-9 w-9 rounded-lg bg-[#1117E8]" />
+            {[1, 2, 3, 4].map((item) => (
+              <span key={item} className="mt-4 block h-9 w-9 rounded-lg bg-[#DADEFD]" />
+            ))}
+          </div>
+          <div className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-[#757588]">Today</p>
+                <h2 className="text-lg font-black text-[#191C1E]">Abuja Prime Hotels Ltd</h2>
+              </div>
+              <span className="rounded bg-[#DADEFD] px-3 py-1 text-xs font-black text-[#0001B1]">Ready</span>
             </div>
-          ))}
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {[
+                ["Invoiced", "₦2.4M", "bg-[#EEF1FF]"],
+                ["Collected", "₦1.9M", "bg-[#F4F6FF]"],
+                ["Outstanding", "₦500K", "bg-[#FFF0CC]"],
+              ].map(([label, value, color]) => (
+                <div key={label} className={`rounded-lg border border-[#D7DEE8] p-4 ${color}`}>
+                  <p className="text-xs text-[#454557]">{label}</p>
+                  <p className="mt-2 text-lg font-black text-[#191C1E]">{value}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 rounded-xl border border-[#D7DEE8]">
+              <div className="flex items-center justify-between border-b border-[#D7DEE8] px-4 py-3">
+                <p className="text-xs font-black uppercase tracking-wide text-[#757588]">Recent invoices</p>
+                <span className="flex gap-1">
+                  {[1, 2, 3].map((item) => <span key={item} className="h-3 w-1.5 rounded bg-[#1117E8]" />)}
+                </span>
+              </div>
+              {[
+                ["INV-0042", "Abuja Prime Hotels", "₦850,000", "Paid", "bg-[#1117E8]"],
+                ["INV-0041", "Kano Retail Hub", "₦142,000", "Partial", "bg-[#F59E0B]"],
+                ["INV-0040", "Enugu Agro Ventures", "₦67,500", "Ready", "bg-[#1117E8]"],
+              ].map(([id, client, amount, status, dot]) => (
+                <div key={id} className="grid grid-cols-[1fr_auto] gap-4 border-b border-[#D7DEE8] px-4 py-3 last:border-b-0">
+                  <div>
+                    <p className="font-black text-[#191C1E]">{id}</p>
+                    <p className="text-xs text-[#454557]">{client}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-black text-[#191C1E]">{amount}</p>
+                    <p className="flex items-center justify-end gap-1 text-xs text-[#454557]"><span className={`h-2 w-2 rounded-full ${dot}`} />{status}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-      <div className="mt-7 grid gap-3 sm:grid-cols-2">
-        <ButtonLink variant="secondary" className="gap-2 bg-[#DADEFD]/55 text-[#454557]" href="#">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <ButtonLink variant="secondary" className="gap-2" href="/signup">
           <Send size={16} aria-hidden="true" /> Send to Customer
         </ButtonLink>
-        <ButtonLink className="gap-2" href="#">
+        <ButtonLink className="gap-2" href="/signup">
           <Landmark size={16} aria-hidden="true" /> Submit to FIRS/NRS
         </ButtonLink>
       </div>
@@ -275,9 +299,9 @@ function InvoiceMockup() {
 
 function HeroSection() {
   return (
-    <section className="overflow-hidden bg-[radial-gradient(circle_at_72%_20%,#DADEFD_0,#F7F9FB_34%,#F7F9FB_100%)]">
+    <section className="overflow-hidden border-b border-[#D7DEE8] bg-[radial-gradient(circle_at_78%_18%,rgba(218,222,253,0.9)_0,rgba(247,249,251,0)_32%),linear-gradient(180deg,#F7F9FB_0%,#FFFFFF_100%)]">
       <div className="mx-auto grid min-h-[calc(100svh-5rem)] max-w-7xl items-center gap-10 px-5 py-12 md:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:py-10">
-        <div>
+        <div className="reveal-up">
           <span className="inline-flex rounded-full border border-[#C5C4DA] bg-[#DADEFD]/70 px-4 py-2 text-sm font-semibold text-[#0001B1]">
             E-Invoicing Readiness Platform for Nigerian Businesses
           </span>
@@ -287,14 +311,28 @@ function HeroSection() {
           <p className="mt-5 max-w-2xl text-base leading-7 text-[#454557] lg:text-lg lg:leading-8">
             Streamline your transition to the new FIRS/NRS tax framework. PayTraka provides the tools to manage your sales, purchases, and compliance reporting in one unified readiness portal.
           </p>
-          <div className="mt-7 flex flex-col gap-4 sm:flex-row">
-            <ButtonLink href="#">Start Free Trial</ButtonLink>
-            <ButtonLink href="#" variant="secondary">
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+            <ButtonLink href="/signup">Start Free Trial</ButtonLink>
+            <ButtonLink href="/company#contact" variant="secondary">
               Book a Demo
             </ButtonLink>
           </div>
+          <div className="mt-10 grid max-w-xl grid-cols-3 gap-5 text-[#191C1E]">
+            {[
+              ["Create", "structured invoices"],
+              ["Validate", "tax-ready records"],
+              ["Submit", "APP/SI pathways"],
+            ].map(([value, label]) => (
+              <div key={label}>
+                <p className="text-3xl font-black">{value}</p>
+                <p className="text-sm font-medium text-[#454557]">{label}</p>
+              </div>
+            ))}
+          </div>
         </div>
-        <InvoiceMockup />
+        <div className="reveal-up [animation-delay:160ms]">
+          <InvoiceMockup />
+        </div>
       </div>
     </section>
   );
@@ -303,14 +341,14 @@ function HeroSection() {
 function PainPointsSection() {
   return (
     <section className="bg-white py-16 md:py-20">
-      <div className="mx-auto max-w-7xl px-5 md:px-8">
+      <div className="reveal-up mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeader
           title="Businesses are not ready for e-invoicing compliance"
           description="Manual processes and scattered tools are the biggest barriers to meeting new regulatory standards."
         />
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {painPoints.map(({ icon: Icon, title, description }) => (
-            <article key={title} className="rounded-xl border border-[#C5C4DA] bg-[#F7F9FB] p-6">
+            <article key={title} className="rounded-2xl border border-[#C5C4DA] bg-[#F7F9FB] p-6 shadow-[0_12px_30px_rgba(25,28,30,0.04)] transition hover:-translate-y-1 hover:border-[#1117E8]">
               <Icon className="h-7 w-7 text-[#1117E8]" aria-hidden="true" />
               <h3 className="mt-6 text-lg font-bold text-[#191C1E]">{title}</h3>
               <p className="mt-3 text-sm leading-6 text-[#454557]">{description}</p>
@@ -325,7 +363,7 @@ function PainPointsSection() {
 function WorkflowSection() {
   return (
     <section className="bg-[#F1F4F8] py-16 md:py-20">
-      <div className="mx-auto max-w-7xl px-5 md:px-8">
+      <div className="reveal-up mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeader
           title="One portal for invoice creation, validation, and compliance"
           description="PayTraka handles the heavy lifting of tax readiness in six simple steps."
@@ -348,26 +386,27 @@ function WorkflowSection() {
 
 function FeatureGridSection() {
   return (
-    <section className="bg-white py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-5 md:px-8">
-        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+    <section className="bg-[#F7F9FB] py-16 md:py-24">
+      <div className="reveal-up mx-auto max-w-7xl px-5 md:px-8">
+        <div className="mx-auto max-w-4xl">
+          <p className="text-sm font-extrabold uppercase tracking-widest text-[#0001B1]">One connected platform</p>
           <SectionHeader
             align="left"
             title="Comprehensive Features for Every Tax Detail"
             description="A purpose-built toolkit for Nigerian financial controllers and small business owners."
           />
-          <a href="/product" className="inline-flex items-center gap-2 text-sm font-bold text-[#0001B1] transition hover:text-[#1117E8]">
-            View Detailed Specs <ArrowRight size={16} aria-hidden="true" />
-          </a>
         </div>
-        <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-12 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {features.map(({ icon: Icon, title, description }) => (
-            <article key={title}>
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-md bg-[#DADEFD] text-[#1117E8]">
+            <article
+              key={title}
+              className="rounded-2xl border border-[#C5C4DA]/80 bg-white/70 p-6 shadow-[0_14px_30px_rgba(25,28,30,0.04)] backdrop-blur transition hover:-translate-y-1 hover:border-[#1117E8] hover:bg-white"
+            >
+              <span className="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-[#DADEFD]/70 text-[#1117E8]">
                 <Icon size={18} aria-hidden="true" />
               </span>
-              <h3 className="mt-4 text-base font-bold text-[#191C1E]">{title}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#454557]">{description}</p>
+              <h3 className="mt-7 text-base font-extrabold text-[#191C1E]">{title}</h3>
+              <p className="mt-3 text-sm leading-6 text-[#454557]">{description}</p>
             </article>
           ))}
         </div>
@@ -385,7 +424,7 @@ function ConsultantsSection() {
 
   return (
     <section className="bg-[#0001B1] py-16 text-white md:py-24">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 md:px-8 lg:grid-cols-2 lg:items-center">
+      <div className="reveal-up mx-auto grid max-w-7xl gap-10 px-5 md:px-8 lg:grid-cols-2 lg:items-center">
         <div className="rounded-xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15">
@@ -447,7 +486,7 @@ function ConsultantsSection() {
 function PricingSection() {
   return (
     <section className="bg-[#F7F9FB] py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-5 md:px-8">
+      <div className="reveal-up mx-auto max-w-7xl px-5 md:px-8">
         <SectionHeader
           title="Ready for every stage of your journey"
           description="Simple, transparent pricing for Nigerian businesses of all sizes."
@@ -490,7 +529,7 @@ function PricingSection() {
 function FAQSection() {
   return (
     <section className="bg-white py-16 md:py-20">
-      <div className="mx-auto max-w-4xl px-5 md:px-8">
+      <div className="reveal-up mx-auto max-w-4xl px-5 md:px-8">
         <SectionHeader title="Frequently Asked Questions" description="" />
         <div className="mt-10 space-y-4">
           {faqs.map((faq) => (
@@ -511,7 +550,7 @@ function FAQSection() {
 function ComplianceNotice() {
   return (
     <section className="bg-[#E8EAED] py-10">
-      <div className="mx-auto max-w-5xl px-5 md:px-8">
+      <div className="reveal-up mx-auto max-w-5xl px-5 md:px-8">
         <div className="rounded-xl border border-[#C5C4DA] bg-white p-6">
           <h2 className="flex items-center gap-3 text-sm font-bold text-[#0001B1]">
             <CircleAlert size={18} aria-hidden="true" /> Compliance & Readiness Notice
@@ -528,7 +567,7 @@ function ComplianceNotice() {
 function FinalCTA() {
   return (
     <section className="bg-white py-16 md:py-24">
-      <div className="mx-auto max-w-4xl px-5 text-center md:px-8">
+      <div className="reveal-up mx-auto max-w-4xl px-5 text-center md:px-8">
         <h2 className="text-4xl font-extrabold leading-tight text-[#0001B1] md:text-5xl">
           Prepare your business for e-invoicing compliance
         </h2>
@@ -536,7 +575,7 @@ function FinalCTA() {
           Join hundreds of Nigerian businesses already using PayTraka to streamline their tax workflows.
         </p>
         <div className="mt-9 flex flex-col justify-center gap-4 sm:flex-row">
-          <ButtonLink href="/company#contact">Start Free Trial</ButtonLink>
+          <ButtonLink href="/signup">Start Free Trial</ButtonLink>
           <ButtonLink href="/company#contact" variant="secondary">
             Talk to Sales
           </ButtonLink>
@@ -551,8 +590,8 @@ function Footer() {
     <footer className="border-t border-[#C5C4DA] bg-[#E9EEF4]">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 md:grid-cols-[1.4fr_0.8fr_0.8fr_1.1fr] md:px-8">
         <div>
-          <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={130} height={36} className="h-8 w-auto" />
-          <p className="mt-4 max-w-sm text-sm leading-6 text-[#454557]">
+          <Image src="/paytraka_logo/paytraka-logo-navbar.png" alt="PayTraka" width={180} height={52} className="h-11 w-auto object-contain" />
+          <p className="mt-5 max-w-sm text-sm leading-6 text-[#454557]">
             The trusted e-invoicing readiness platform for the Nigerian business ecosystem.
           </p>
         </div>
