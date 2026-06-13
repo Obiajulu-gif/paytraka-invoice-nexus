@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, ClipboardCheck, Plus, Truck, Users } from "lucide-react";
 import Link from "next/link";
-import { dashboardMetrics, recentSalesRows } from "../data";
+import { customerRows, dashboardMetrics, recentSalesRows } from "../data";
 import { Button, Card, ComplianceAlert, DataTable, MetricCard, StatusBadge, SupportCard, rowActions } from "../ui";
 import { StatusTone } from "../types";
 
@@ -45,6 +45,21 @@ export function DashboardHome() {
                 <Link key={String(title)} href={String(href)} className="flex flex-col gap-3 rounded-xl border border-[#C5C4DA] bg-[#F7F9FB] p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3"><span className="rounded-lg bg-[#DADEFD] p-3 text-[#0001B1]">{typeof Icon !== "string" ? <Icon className="h-5 w-5" /> : null}</span><div><p className="font-bold">{title as string}</p><p className="text-sm text-[#454557]">{text as string}</p></div></div>
                   <span className="font-bold text-[#0001B1]">Manage</span>
+                </Link>
+              ))}
+            </div>
+          </Card>
+          <Card className="p-6">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-lg font-bold">Recent Customers</h2>
+              <Link href="/dashboard/customers" className="text-sm font-bold text-[#0001B1]">Manage Customers</Link>
+            </div>
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {customerRows.slice(0, 4).map(([name, tin, contact]) => (
+                <Link key={name} href="/dashboard/customers" className="rounded-xl border border-[#C5C4DA] bg-[#F7F9FB] p-4">
+                  <p className="font-bold">{name}</p>
+                  <p className="mt-1 text-sm text-[#454557]">{tin}</p>
+                  <p className="mt-2 whitespace-pre-line text-xs text-[#757588]">{contact}</p>
                 </Link>
               ))}
             </div>

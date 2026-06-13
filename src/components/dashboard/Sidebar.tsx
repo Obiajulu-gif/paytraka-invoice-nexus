@@ -28,10 +28,10 @@ import { resetOnboardingState } from "@/lib/onboarding-store";
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: Home, matches: ["/dashboard"] },
   { label: "Create Invoice", href: "/dashboard/invoices/create", icon: FilePlus2, matches: ["/dashboard/invoices/create"] },
-  { label: "Send Invoices", href: "/dashboard/invoices/sales", icon: Send, matches: ["/dashboard/invoices", "/dashboard/invoices/sales"] },
-  { label: "Suppliers", href: "/dashboard/suppliers", icon: Truck },
-  { label: "Customers", href: "/dashboard/customers", icon: Users },
-  { label: "Products", href: "/dashboard/products", icon: Package },
+  { label: "Send Invoices", href: "/dashboard/invoices/sales", icon: Send, matches: ["/dashboard/invoices/sales"] },
+  { label: "Suppliers", href: "/dashboard/suppliers", icon: Truck, matches: ["/dashboard/suppliers"] },
+  { label: "Customers", href: "/dashboard/customers", icon: Users, matches: ["/dashboard/customers"] },
+  { label: "Products", href: "/dashboard/products", icon: Package, matches: ["/dashboard/products"] },
   { label: "Validate Invoice Data", href: "/dashboard/compliance/validate", icon: ClipboardCheck, matches: ["/dashboard/compliance", "/dashboard/compliance/validate"] },
   { label: "Submit to FIRS/NRS", href: "/dashboard/compliance/submit", icon: Landmark, matches: ["/dashboard/compliance/submit"] },
   { label: "Submission Status", href: "/dashboard/compliance/status", icon: FileCheck2, matches: ["/dashboard/compliance/status"] },
@@ -45,7 +45,7 @@ const navItems = [
 
 function isActiveRoute(pathname: string, href: string, matches?: string[]) {
   if (matches) return matches.some((match) => pathname === match);
-  return pathname === href || pathname.startsWith(`${href}/`);
+  return pathname === href;
 }
 
 export function Sidebar({ open, setOpen }: { open: boolean; setOpen: (open: boolean) => void }) {

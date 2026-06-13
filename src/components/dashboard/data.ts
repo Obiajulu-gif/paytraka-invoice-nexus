@@ -5,6 +5,7 @@ export const dashboardMetrics = [
   ["Failed Validation", "6", "Action Req.", "danger"],
   ["Amount Invoiced", "₦42.8M", "", "neutral"],
   ["Payments Received", "₦28.4M", "66%", "success"],
+  ["Outstanding Payments", "₦14.4M", "Across 18 invoices", "warning"],
   ["VAT Summary (YTD)", "₦3.2M", "", "neutral"],
 ];
 
