@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, Link2, Send, ShoppingCart } from "lucide-react";
+import { Copy, CreditCard, Eye, Link2, Send, ShoppingCart, XCircle } from "lucide-react";
 import { useState } from "react";
 import { Button, Card, DashboardFormModal, DataTable, Input, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
@@ -20,6 +20,11 @@ export function PaymentLinksPage() {
     notifyDashboard("Payment Link Copied to Clipboard");
   }
 
+  function disableLink(id: string) {
+    setLinks((current) => current.map((link) => link[0] === id ? [link[0], link[1], link[2], link[3], "Disabled"] : link));
+    notifyDashboard(`${id} disabled`);
+  }
+
   return (
     <>
       <PageHeader title="Payment Links" subtitle="Generate secure payment links for invoices and track customer payments." action={<Button onClick={() => setModalOpen(true)}><Link2 className="h-4 w-4" /> Create Payment Link</Button>} />
@@ -29,7 +34,7 @@ export function PaymentLinksPage() {
         title="Create Payment Link"
         description="Generate a secure payment link for a selected invoice."
         submitLabel="Generate Link"
-        fields={["Select Invoice", "Outstanding Balance", "Link Title", "Amount to Pay", "Expiry Date", "Customer Message"]}
+        fields={["Customer", "Amount", "Description", "Expiry Date", "Linked Invoice", "Payment provider", "Customer Message"]}
         onSubmit={createPaymentLink}
         successMessage="Payment Link Copied to Clipboard"
       />
@@ -58,7 +63,21 @@ export function PaymentLinksPage() {
           <DataTable
             title="Recent Payment Links"
             columns={["Link ID", "Invoice #", "Customer", "Amount", "Status", "Actions"]}
-            rows={links.map(([id, invoice, customer, amount, status]) => ({ "Link ID": id, "Invoice #": invoice, Customer: <b>{customer}</b>, Amount: amount, Status: <StatusBadge>{status}</StatusBadge>, Actions: rowActions(undefined, id) }))}
+            rows={links.map(([id, invoice, customer, amount, status]) => ({
+              "Link ID": id,
+              "Invoice #": invoice,
+              Customer: <b>{customer}</b>,
+              Amount: amount,
+              Status: <StatusBadge>{status}</StatusBadge>,
+              Actions: rowActions(
+                <>
+                  <button type="button" onClick={() => notifyDashboard(`${id} details opened`)} aria-label={`View ${id}`} className="rounded p-1 text-[#454557]"><Eye className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => notifyDashboard(`${id} copied to clipboard`)} aria-label={`Copy ${id}`} className="rounded p-1 text-[#454557]"><Copy className="h-4 w-4" /></button>
+                  {status !== "Disabled" ? <button type="button" onClick={() => disableLink(id)} aria-label={`Disable ${id}`} className="rounded p-1 text-red-600"><XCircle className="h-4 w-4" /></button> : null}
+                </>,
+                id,
+              ),
+            }))}
           />
         </div>
         <aside className="space-y-6">

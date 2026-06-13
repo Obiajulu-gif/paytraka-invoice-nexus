@@ -35,12 +35,12 @@ const navItems = [
   { label: "Validate Invoice Data", href: "/dashboard/compliance/validate", icon: ClipboardCheck, matches: ["/dashboard/compliance", "/dashboard/compliance/validate"] },
   { label: "Submit to FIRS/NRS", href: "/dashboard/compliance/submit", icon: Landmark, matches: ["/dashboard/compliance/submit"] },
   { label: "Submission Status", href: "/dashboard/compliance/status", icon: FileCheck2, matches: ["/dashboard/compliance/status"] },
-  { label: "Receipts", href: "/dashboard/receipts", icon: ReceiptText },
-  { label: "Payment Links", href: "/dashboard/payment-links", icon: LinkIcon },
-  { label: "Reports", href: "/dashboard/reports", icon: BarChart3 },
-  { label: "Invoice Templates", href: "/dashboard/templates", icon: FileText },
-  { label: "Subscription", href: "/dashboard/subscription", icon: CreditCard },
-  { label: "Support", href: "/dashboard/support", icon: MessageSquare },
+  { label: "Receipts", href: "/dashboard/receipts", icon: ReceiptText, matches: ["/dashboard/receipts"] },
+  { label: "Payment Links", href: "/dashboard/payment-links", icon: LinkIcon, matches: ["/dashboard/payment-links"] },
+  { label: "Reports", href: "/dashboard/reports", icon: BarChart3, matches: ["/dashboard/reports"] },
+  { label: "Invoice Templates", href: "/dashboard/templates", icon: FileText, matches: ["/dashboard/templates"] },
+  { label: "Subscription", href: "/dashboard/subscription", icon: CreditCard, matches: ["/dashboard/subscription"] },
+  { label: "Support", href: "/dashboard/support", icon: MessageSquare, matches: ["/dashboard/support"] },
 ];
 
 function isActiveRoute(pathname: string, href: string, matches?: string[]) {

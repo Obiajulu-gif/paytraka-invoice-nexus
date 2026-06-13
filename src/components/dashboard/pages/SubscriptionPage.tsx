@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button, Card, DashboardFormModal, DataTable, notifyDashboard, PageHeader, StatusBadge } from "../ui";
 
 export function SubscriptionPage() {
-  const [modal, setModal] = useState<"cancel" | "upgrade" | "sales" | null>(null);
+  const [modal, setModal] = useState<"cancel" | "upgrade" | "sales" | "billing" | null>(null);
   const plans = [
     ["Starter", "Perfect for freelancers starting their tax journey.", "₦0/mo", ["Up to 5 invoices/mo", "Basic VAT calculation", "Email support"]],
     ["Compliance Pro", "The standard for growing Nigerian SMEs.", "₦29/mo", ["Unlimited invoices", "Advanced VAT reports", "Multi-user access", "Priority chat support"]],
@@ -18,15 +18,20 @@ export function SubscriptionPage() {
       <DashboardFormModal
         open={Boolean(modal)}
         onClose={() => setModal(null)}
-        title={modal === "cancel" ? "Cancel Subscription" : modal === "sales" ? "Contact Sales" : "Upgrade Subscription"}
-        description={modal === "cancel" ? "Tell us why you are cancelling so support can assist." : "Confirm your billing contact and preferred plan."}
-        submitLabel={modal === "cancel" ? "Submit Cancellation" : modal === "sales" ? "Request Sales Call" : "Upgrade Plan"}
-        fields={modal === "cancel" ? ["Cancellation reason", "Feedback"] : ["Billing contact", "Company email", "Preferred plan", "Notes"]}
+        title={modal === "cancel" ? "Cancel Subscription" : modal === "sales" ? "Contact Sales" : modal === "billing" ? "Manage Billing" : "Upgrade Subscription"}
+        description={modal === "cancel" ? "Tell us why you are cancelling so support can assist." : modal === "billing" ? "Update billing contact, payment method, and invoice delivery settings." : "Confirm your billing contact and preferred plan."}
+        submitLabel={modal === "cancel" ? "Submit Cancellation" : modal === "sales" ? "Request Sales Call" : modal === "billing" ? "Save Billing Details" : "Upgrade Plan"}
+        fields={modal === "cancel" ? ["Cancellation reason", "Feedback"] : modal === "billing" ? ["Billing contact", "Company email", "Payment method", "Billing address"] : ["Billing contact", "Company email", "Preferred plan", "Notes"]}
       />
       <Card className="mb-6 flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-4"><span className="rounded-2xl bg-[#DADEFD] p-4 text-[#0001B1]"><CreditCard className="h-6 w-6" /></span><div><p className="text-lg font-bold">Current Plan: Compliance Pro <StatusBadge tone="success">Active</StatusBadge></p><p className="text-sm text-[#454557]">Your plan renews on January 12, 2027.</p></div></div>
-        <div className="flex flex-col gap-3 sm:flex-row"><Button variant="secondary" onClick={() => setModal("cancel")}>Cancel Subscription</Button><Button onClick={() => setModal("upgrade")}>Upgrade Now</Button></div>
+        <div className="flex flex-col gap-3 sm:flex-row"><Button variant="secondary" onClick={() => setModal("billing")}>Manage Billing</Button><Button variant="secondary" onClick={() => setModal("cancel")}>Cancel Subscription</Button><Button onClick={() => setModal("upgrade")}>Upgrade Now</Button></div>
       </Card>
+      <div className="mb-6 grid gap-5 md:grid-cols-3">
+        <Card className="p-5"><p className="text-sm font-bold uppercase text-[#454557]">Invoice Usage</p><p className="mt-3 text-3xl font-extrabold">642 / 1,000</p><div className="mt-4 h-2 rounded-full bg-[#EEF1F5]"><div className="h-full w-[64%] rounded-full bg-[#1117E8]" /></div></Card>
+        <Card className="p-5"><p className="text-sm font-bold uppercase text-[#454557]">Billing Period</p><p className="mt-3 text-3xl font-extrabold">Monthly</p><p className="mt-2 text-sm text-[#454557]">Next invoice: Jan 12, 2027</p></Card>
+        <Card className="p-5"><p className="text-sm font-bold uppercase text-[#454557]">Seats</p><p className="mt-3 text-3xl font-extrabold">4 / 5</p><Button variant="secondary" className="mt-4 min-h-10 px-3" onClick={() => notifyDashboard("Seat management opened")}>Manage Seats</Button></Card>
+      </div>
       <div className="mb-8 grid gap-6 lg:grid-cols-3">
         {plans.map(([name, description, price, features], index) => (
           <Card key={name} className={`relative p-6 ${index === 1 ? "border-[#1117E8] shadow-xl" : ""}`}>

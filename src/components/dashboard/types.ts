@@ -17,6 +17,8 @@ export type DashboardKind =
   | "payment-links"
   | "reports"
   | "compliance"
+  | "compliance-submit"
+  | "compliance-status"
   | "templates"
   | "subscription"
   | "support"

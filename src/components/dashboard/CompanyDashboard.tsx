@@ -1,7 +1,6 @@
 "use client";
 
 import { DashboardLayout } from "./DashboardLayout";
-import { CompliancePage } from "./pages/CompliancePage";
 import { CreateCustomerPage } from "./pages/CreateCustomerPage";
 import { CreateInvoicePage } from "./pages/CreateInvoicePage";
 import { CustomersPage, SuppliersPage } from "./pages/DirectoryPage";
@@ -13,10 +12,13 @@ import { ReceiptsPage } from "./pages/ReceiptsPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { SalesInvoicesPage } from "./pages/SalesInvoicesPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { SubmissionStatusPage } from "./pages/SubmissionStatusPage";
+import { SubmitCompliancePage } from "./pages/SubmitCompliancePage";
 import { SubscriptionPage } from "./pages/SubscriptionPage";
 import { SupportPage } from "./pages/SupportPage";
 import { TemplatesPage } from "./pages/TemplatesPage";
 import { DashboardKind } from "./types";
+import { ValidateInvoiceDataPage } from "./pages/ValidateInvoiceDataPage";
 
 const routeMap: Record<string, DashboardKind> = {
   "": "home",
@@ -35,8 +37,8 @@ const routeMap: Record<string, DashboardKind> = {
   reports: "reports",
   compliance: "compliance",
   "compliance/validate": "compliance",
-  "compliance/submit": "compliance",
-  "compliance/status": "compliance",
+  "compliance/submit": "compliance-submit",
+  "compliance/status": "compliance-status",
   templates: "templates",
   subscription: "subscription",
   support: "support",
@@ -74,7 +76,11 @@ function DashboardPage({ kind }: { kind: DashboardKind }) {
     case "reports":
       return <ReportsPage />;
     case "compliance":
-      return <CompliancePage />;
+      return <ValidateInvoiceDataPage />;
+    case "compliance-submit":
+      return <SubmitCompliancePage />;
+    case "compliance-status":
+      return <SubmissionStatusPage />;
     case "templates":
       return <TemplatesPage />;
     case "subscription":
