@@ -1,16 +1,42 @@
 "use client";
 
-import { Banknote, CheckCircle2, Download, Eye, ReceiptText } from "lucide-react";
+import { Banknote, CheckCircle2, ReceiptText } from "lucide-react";
 import { useState } from "react";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Pagination } from "@/components/ui/Pagination";
+import { useInvoices } from "@/hooks/useInvoices";
 import { useReceipts } from "@/hooks/useReceipts";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { BottomInsight, Button, ComplianceAlert, DashboardFormModal, DataTable, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 export function ReceiptsPage() {
-  const { receipts, pagination, pager, loading, error } = useReceipts();
+  const { receipts, pagination, pager, loading, error, create } = useReceipts();
+  const { invoices } = useInvoices();
   const [modalOpen, setModalOpen] = useState(false);
   const totalReceived = receipts.reduce((sum, receipt) => sum + Number(receipt.amount_paid ?? 0), 0);
+
+  async function createReceipt(values?: Record<string, string>) {
+    const data = values ?? {};
+    try {
+      const invoiceInput = data["Sales invoice"]?.trim();
+      const invoice = invoices.find((item) => item.id === invoiceInput || item.invoice_number === invoiceInput);
+      const salesInvoiceId = invoice?.id ?? invoiceInput;
+      if (!salesInvoiceId) throw new Error("Sales invoice is required.");
+      const amountPaid = Number(data["Amount paid"] || 0);
+      if (!Number.isFinite(amountPaid) || amountPaid <= 0) throw new Error("Amount paid must be greater than zero.");
+
+      await create({
+        sales_invoice_id: salesInvoiceId,
+        amount_paid: amountPaid,
+        payment_method: data["Payment method"]?.trim() || "bank_transfer",
+        payment_date: data["Payment date"]?.trim() || new Date().toISOString().slice(0, 10),
+        currency: data.Currency?.trim() || "NGN",
+        note: data.Note?.trim() || undefined,
+      });
+    } catch (requestError) {
+      throw new Error(getApiErrorMessage(requestError, "Unable to save receipt."));
+    }
+  }
 
   return (
     <>
@@ -22,7 +48,7 @@ export function ReceiptsPage() {
         description="Record a customer payment and link it to an invoice."
         submitLabel="Save Receipt"
         fields={["Sales invoice", "Amount paid", "Payment method", "Payment date", "Currency", "Note"]}
-        onSubmit={() => notifyDashboard("Use the full API form to save this receipt")}
+        onSubmit={createReceipt}
         successMessage="Receipt saved"
       />
       {error ? <ComplianceAlert title="Unable to load receipts" text={error} /> : null}
@@ -42,13 +68,7 @@ export function ReceiptsPage() {
           Date: receipt.payment_date,
           Currency: receipt.currency,
           Note: receipt.note ?? "-",
-          Actions: rowActions(
-            <>
-              <button type="button" onClick={() => notifyDashboard(`${receipt.id} preview opened`)} aria-label={`View ${receipt.id}`} className="rounded p-1 text-[#454557]"><Eye className="h-4 w-4" /></button>
-              <button type="button" onClick={() => notifyDashboard(`${receipt.id} PDF downloaded`)} aria-label={`Download ${receipt.id}`} className="rounded p-1 text-[#454557]"><Download className="h-4 w-4" /></button>
-            </>,
-            receipt.id,
-          ),
+          Actions: rowActions(undefined, receipt.id),
         }))}
         footer={loading ? "Loading API records..." : `Showing ${receipts.length} of ${pagination?.total ?? receipts.length} receipts`}
         footerActions={<Pagination pagination={pagination} onPageChange={pager.setPage} />}

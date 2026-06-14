@@ -5,10 +5,11 @@ import { useState } from "react";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Pagination } from "@/components/ui/Pagination";
 import { useProducts } from "@/hooks/useProducts";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { BottomInsight, Button, Card, ComplianceAlert, DashboardFormModal, DataTable, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 export function ProductsPage() {
-  const { products, categories, pagination, pager, loading, error } = useProducts();
+  const { products, categories, pagination, pager, loading, error, create } = useProducts();
   const [modalOpen, setModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("All");
   const filteredProducts = products.filter((product) => {
@@ -18,6 +19,35 @@ export function ProductsPage() {
   });
   const categoryById = new Map(categories.map((category) => [category.id, category.name]));
   const inactiveCount = products.filter((product) => product.status === "inactive").length;
+
+  async function createCatalogItem(values?: Record<string, string>) {
+    const data = values ?? {};
+    try {
+      const name = data.Name?.trim();
+      if (!name) throw new Error("Item name is required.");
+      const unitPrice = Number(data["Unit price"] || 0);
+      if (!Number.isFinite(unitPrice) || unitPrice < 0) throw new Error("Unit price must be a valid amount.");
+      const categoryInput = data.Category?.trim();
+      const category = categoryInput ? categories.find((item) => item.id === categoryInput || item.name.toLowerCase() === categoryInput.toLowerCase()) : undefined;
+
+      await create({
+        name,
+        sku: data.SKU?.trim() || undefined,
+        description: data.Description?.trim() || undefined,
+        product_type: data["Product type"]?.toLowerCase().includes("service") ? "service" : "product",
+        unit_price: unitPrice,
+        cost_price: data["Cost price"] ? Number(data["Cost price"]) : undefined,
+        tax_rate: data["Tax/VAT rate"] ? Number(data["Tax/VAT rate"]) : undefined,
+        currency: data.Currency?.trim() || "NGN",
+        stock_quantity: data["Stock quantity"] ? Number(data["Stock quantity"]) : undefined,
+        track_inventory: data["Track inventory"]?.toLowerCase() === "true" || data["Track inventory"]?.toLowerCase() === "yes",
+        status: data.Status?.toLowerCase().includes("inactive") ? "inactive" : "active",
+        category_id: category?.id,
+      });
+    } catch (requestError) {
+      throw new Error(getApiErrorMessage(requestError, "Unable to create catalog item."));
+    }
+  }
 
   return (
     <>
@@ -29,7 +59,7 @@ export function ProductsPage() {
         description="Add a product or service with unit price and VAT details."
         submitLabel="Save Item"
         fields={["Name", "SKU", "Description", "Product type", "Unit price", "Cost price", "Tax/VAT rate", "Currency", "Stock quantity", "Track inventory", "Status", "Category"]}
-        onSubmit={() => notifyDashboard("Use the full API form to save this item")}
+        onSubmit={createCatalogItem}
       />
       <div className="mb-6 grid gap-5 md:grid-cols-3">
         <MetricCard label="Total Items" value={String(pagination?.total ?? products.length)} meta="API catalog records" />

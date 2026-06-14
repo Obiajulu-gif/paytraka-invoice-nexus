@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Pagination } from "@/components/ui/Pagination";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { getApiErrorMessage } from "@/lib/api/client";
 import { Button, Card, ComplianceAlert, DashboardFormModal, DataTable, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
@@ -24,6 +25,50 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
     link.download = "customers.csv";
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function createDirectoryRecord(values?: Record<string, string>) {
+    const data = values ?? {};
+    try {
+      if (isCustomers) {
+        const name = data["Customer name"]?.trim();
+        if (!name) throw new Error("Customer name is required.");
+        await customersState.create({
+          customer_type: data["Customer type"]?.toLowerCase().includes("individual") ? "individual" : "business",
+          name,
+          email: data.Email?.trim() || undefined,
+          phone1: data["Primary phone"]?.trim() || undefined,
+          phone2: data["Secondary phone"]?.trim() || undefined,
+          billing_address: data["Billing address"]?.trim() || undefined,
+          city: data.City?.trim() || undefined,
+          state: data.State?.trim() || undefined,
+          country: data.Country?.trim() || undefined,
+          postal_code: data["Postal code"]?.trim() || undefined,
+          tax_identification_number: data["Tax ID/TIN"]?.trim() || undefined,
+          rc_number: data["RC Number"]?.trim() || undefined,
+        });
+        return;
+      }
+
+      const supplierName = data["Supplier name"]?.trim();
+      if (!supplierName) throw new Error("Supplier name is required.");
+      await suppliersState.create({
+        supplier_type: data["Supplier type"]?.toLowerCase().includes("individual") ? "individual" : "business",
+        supplier_name: supplierName,
+        contact_person: data["Contact person"]?.trim() || undefined,
+        email: data.Email?.trim() || undefined,
+        phone: data.Phone?.trim() || undefined,
+        tax_identification_number: data["Tax ID/TIN"]?.trim() || undefined,
+        rc_number: data["RC Number"]?.trim() || undefined,
+        address: data.Address?.trim() || undefined,
+        city: data.City?.trim() || undefined,
+        state: data.State?.trim() || undefined,
+        country: data.Country?.trim() || undefined,
+        payment_terms: data["Payment terms"]?.trim() || undefined,
+      });
+    } catch (requestError) {
+      throw new Error(getApiErrorMessage(requestError, `Unable to create ${isCustomers ? "customer" : "supplier"}.`));
+    }
   }
 
   const visibleCount = isCustomers ? customersState.customers.length : suppliersState.suppliers.length;
@@ -46,7 +91,7 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
         description={isCustomers ? "Create a customer record for invoicing, receipts, and TIN validation." : "Create a supplier record for procurement and VAT claim readiness."}
         submitLabel={isCustomers ? "Save Customer" : "Save Supplier"}
         fields={isCustomers ? ["Customer type", "Customer name", "Email", "Primary phone", "Secondary phone", "Billing address", "City", "State", "Country", "Postal code", "Tax ID/TIN", "RC Number"] : ["Supplier type", "Supplier name", "Contact person", "Email", "Phone", "Tax ID/TIN", "RC Number", "Address", "City", "State", "Country", "Payment terms"]}
-        onSubmit={() => notifyDashboard("Use the full API form to save this record")}
+        onSubmit={createDirectoryRecord}
       />
       {!isCustomers && missingTin > 0 ? <ComplianceAlert title="Compliance Gap Identified" text={`${missingTin} suppliers are missing valid Tax Identification Numbers (TIN).`} /> : null}
       <div className="mb-6 grid gap-5 md:grid-cols-3">

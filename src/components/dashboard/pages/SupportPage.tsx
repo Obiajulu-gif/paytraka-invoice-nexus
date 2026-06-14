@@ -1,6 +1,6 @@
 "use client";
 
-import { Code2, Eye, LifeBuoy, MessageSquare, Phone, Search, Send } from "lucide-react";
+import { Code2, LifeBuoy, MessageSquare, Phone, Search, Send } from "lucide-react";
 import { useState } from "react";
 import { Button, Card, DashboardFormModal, DataTable, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
@@ -71,13 +71,7 @@ export function SupportPage() {
               Subject: <b>{ticket.subject}</b>,
               Priority: <StatusBadge>{ticket.priority}</StatusBadge>,
               Status: <StatusBadge>{ticket.status}</StatusBadge>,
-              Actions: rowActions(
-                <>
-                  <button type="button" onClick={() => notifyDashboard(`${ticket.id} opened`)} aria-label={`View ${ticket.id}`} className="rounded p-1 text-[#454557]"><Eye className="h-4 w-4" /></button>
-                  <button type="button" onClick={() => notifyDashboard(`Reply opened for ${ticket.id}`)} aria-label={`Reply to ${ticket.id}`} className="rounded p-1 text-[#454557]"><Send className="h-4 w-4" /></button>
-                </>,
-                ticket.id,
-              ),
+              Actions: rowActions(<button type="button" onClick={() => notifyDashboard(`Reply opened for ${ticket.id}`)} aria-label={`Reply to ${ticket.id}`} className="rounded-lg p-2 text-[#454557] transition hover:bg-[#F1F4F8]"><Send className="h-4 w-4" /></button>, ticket.id),
             }))}
             footer={`Showing ${tickets.length} support tickets`}
           />

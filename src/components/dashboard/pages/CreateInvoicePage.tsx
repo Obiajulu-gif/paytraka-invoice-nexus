@@ -6,6 +6,8 @@ import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useProducts } from "@/hooks/useProducts";
+import { getApiErrorMessage } from "@/lib/api/client";
+import { buildSalesInvoiceRequest, validateSalesInvoiceDraft } from "@/lib/invoice-form";
 import { Button, Card, ComplianceAlert, FormShell, notifyDashboard, PageHeader } from "../ui";
 
 type InvoiceItem = {
@@ -30,19 +32,29 @@ function lineTotal(item: InvoiceItem) {
 }
 
 function SalesInvoiceBuilder() {
-  const { customers, loading: customersLoading, error: customersError } = useCustomers();
+  const customersState = useCustomers();
+  const { customers, loading: customersLoading, error: customersError } = customersState;
   const { products, loading: productsLoading, error: productsError } = useProducts();
   const { create } = useInvoices();
   const [customerId, setCustomerId] = useState("");
+  const [customerSearch, setCustomerSearch] = useState("");
+  const [creatingCustomer, setCreatingCustomer] = useState(false);
   const [invoiceType, setInvoiceType] = useState("standard_invoice");
+  const [currency, setCurrency] = useState("NGN");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10));
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
   const [discountAmount, setDiscountAmount] = useState(0);
   const [notes, setNotes] = useState("Thank you for your business.");
   const [lineItems, setLineItems] = useState<InvoiceItem[]>([]);
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const productById = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
+  const filteredCustomers = useMemo(() => {
+    const search = customerSearch.trim().toLowerCase();
+    if (!search) return customers;
+    return customers.filter((customer) => [customer.name, customer.email, customer.phone1, customer.tax_identification_number].some((value) => value?.toLowerCase().includes(search)));
+  }, [customerSearch, customers]);
   const selectedCustomer = customers.find((customer) => customer.id === customerId);
   const subtotal = lineItems.reduce((sum, item) => sum + lineSubtotal(item), 0);
   const vat = lineItems.reduce((sum, item) => sum + lineVat(item), 0);
@@ -85,32 +97,52 @@ function SalesInvoiceBuilder() {
     notifyDashboard("New invoice line item added");
   }
 
+  async function quickCreateCustomer() {
+    const name = customerSearch.trim();
+    if (!name) {
+      setFormError("Enter a customer name to quick-create a customer.");
+      return;
+    }
+    setCreatingCustomer(true);
+    setFormError("");
+    try {
+      const response = await customersState.create({ customer_type: "business", name });
+      setCustomerId(response.data.id);
+      setCustomerSearch(response.data.name);
+      notifyDashboard(`${response.data.name} created`);
+    } catch (requestError) {
+      setFormError(getApiErrorMessage(requestError, "Unable to create customer from invoice form."));
+    } finally {
+      setCreatingCustomer(false);
+    }
+  }
+
   async function saveInvoice() {
-    if (!customerId || lineItems.length === 0) {
-      notifyDashboard("Select a customer and add at least one line item");
+    const draft = {
+      customerId,
+      invoiceType,
+      issueDate,
+      dueDate,
+      currency,
+      notes,
+      discountAmount,
+      lineItems,
+    };
+    const validationErrors = validateSalesInvoiceDraft(draft);
+    if (validationErrors.length) {
+      setFormError(validationErrors[0]);
+      notifyDashboard(validationErrors[0]);
       return;
     }
     setSaving(true);
+    setFormError("");
     try {
-      const response = await create({
-        customer_id: customerId,
-        invoice_type: invoiceType,
-        issue_date: issueDate,
-        due_date: dueDate,
-        currency: "NGN",
-        notes,
-        discount_amount: discountAmount,
-        line_items: lineItems.map((item) => ({
-          product_id: item.productId || undefined,
-          description: item.description,
-          quantity: item.quantity,
-          unit_price: item.rate,
-          tax_rate: item.vatRate,
-        })),
-      });
+      const response = await create(buildSalesInvoiceRequest(draft));
       notifyDashboard(`${response.data.invoice_number} created`);
     } catch (error) {
-      notifyDashboard(error instanceof Error ? error.message : "Unable to create invoice");
+      const message = getApiErrorMessage(error, "Unable to create invoice. Review the customer and line items, then try again.");
+      setFormError(message);
+      notifyDashboard(message);
     } finally {
       setSaving(false);
     }
@@ -125,16 +157,32 @@ function SalesInvoiceBuilder() {
         action={<><Button variant="secondary" href="/dashboard/invoices/sales">Cancel</Button><Button onClick={saveInvoice}>{saving ? "Creating..." : "Create Invoice"}</Button></>}
       />
       {customersError || productsError ? <ComplianceAlert title="Unable to load API data" text={customersError || productsError} /> : null}
+      {formError ? <ComplianceAlert title="Invoice cannot be created yet" text={formError} tone="warning" /> : null}
 
       <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-6">
           <Card className="p-6">
             <h2 className="text-xl font-bold">Customer & Invoice Details</h2>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <label className="block text-sm font-bold text-[#454557]">Customer
-                <select value={customerId} onChange={(event) => setCustomerId(event.target.value)} disabled={customersLoading} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
-                  {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} {!customer.tax_identification_number ? "(TIN missing)" : ""}</option>)}
-                </select>
+              <label className="block text-sm font-bold text-[#454557] md:col-span-2">Customer
+                <div className="mt-2 grid gap-2 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
+                  <input
+                    value={customerSearch}
+                    onChange={(event) => setCustomerSearch(event.target.value)}
+                    placeholder="Search customer or type a new customer name"
+                    className="h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]"
+                  />
+                  <select value={customerId} onChange={(event) => {
+                    setCustomerId(event.target.value);
+                    setCustomerSearch(customers.find((customer) => customer.id === event.target.value)?.name ?? customerSearch);
+                  }} disabled={customersLoading} className="h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
+                    <option value="">{customersLoading ? "Loading customers..." : "Select customer"}</option>
+                    {filteredCustomers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} {!customer.tax_identification_number ? "(TIN missing)" : ""}</option>)}
+                  </select>
+                  <Button variant="secondary" onClick={quickCreateCustomer} className="min-h-11 whitespace-nowrap px-3" disabled={creatingCustomer}>
+                    {creatingCustomer ? "Creating..." : "Quick Create"}
+                  </Button>
+                </div>
               </label>
               <label className="block text-sm font-bold text-[#454557]">Invoice Type
                 <select value={invoiceType} onChange={(event) => setInvoiceType(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
@@ -148,6 +196,11 @@ function SalesInvoiceBuilder() {
               </label>
               <label className="block text-sm font-bold text-[#454557]">Due Date
                 <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
+              </label>
+              <label className="block text-sm font-bold text-[#454557]">Currency
+                <select value={currency} onChange={(event) => setCurrency(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
+                  {["NGN", "USD", "GBP", "EUR"].map((option) => <option key={option} value={option}>{option}</option>)}
+                </select>
               </label>
             </div>
           </Card>
@@ -204,6 +257,7 @@ function SalesInvoiceBuilder() {
             <h2 className="text-xl font-bold">Invoice Summary</h2>
             <div className="mt-5 space-y-3 text-sm">
               <div className="flex justify-between gap-3"><span className="text-[#454557]">Customer</span><b className="text-right">{selectedCustomer?.name ?? "Select customer"}</b></div>
+              <div className="flex justify-between gap-3"><span className="text-[#454557]">Currency</span><b>{currency}</b></div>
               <div className="flex justify-between gap-3"><span className="text-[#454557]">Subtotal</span><b><CurrencyAmount amount={subtotal} /></b></div>
               <div className="flex justify-between gap-3"><span className="text-[#454557]">Discount</span><b>-<CurrencyAmount amount={discountAmount} /></b></div>
               <div className="flex justify-between gap-3"><span className="text-[#454557]">VAT</span><b><CurrencyAmount amount={vat} /></b></div>

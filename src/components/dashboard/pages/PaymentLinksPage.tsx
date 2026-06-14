@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, CreditCard, Eye, Link2, Send, ShoppingCart, XCircle } from "lucide-react";
+import { CreditCard, Link2, Send, ShoppingCart, XCircle } from "lucide-react";
 import { useState } from "react";
 import { Button, Card, DashboardFormModal, DataTable, Input, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
@@ -69,14 +69,7 @@ export function PaymentLinksPage() {
               Customer: <b>{customer}</b>,
               Amount: amount,
               Status: <StatusBadge>{status}</StatusBadge>,
-              Actions: rowActions(
-                <>
-                  <button type="button" onClick={() => notifyDashboard(`${id} details opened`)} aria-label={`View ${id}`} className="rounded p-1 text-[#454557]"><Eye className="h-4 w-4" /></button>
-                  <button type="button" onClick={() => notifyDashboard(`${id} copied to clipboard`)} aria-label={`Copy ${id}`} className="rounded p-1 text-[#454557]"><Copy className="h-4 w-4" /></button>
-                  {status !== "Disabled" ? <button type="button" onClick={() => disableLink(id)} aria-label={`Disable ${id}`} className="rounded p-1 text-red-600"><XCircle className="h-4 w-4" /></button> : null}
-                </>,
-                id,
-              ),
+              Actions: rowActions(status !== "Disabled" ? <button type="button" onClick={() => disableLink(id)} aria-label={`Disable ${id}`} className="rounded-lg p-2 text-red-600 transition hover:bg-red-50"><XCircle className="h-4 w-4" /></button> : undefined, id),
             }))}
           />
         </div>

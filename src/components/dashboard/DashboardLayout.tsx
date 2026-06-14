@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getOnboardingState } from "@/lib/onboarding-store";
 import { useAuth } from "@/hooks/useAuth";
-import { PAYTRAKA_COLORS } from "./types";
 import { Sidebar } from "./Sidebar";
 import { notifyDashboard, StatusBadge, Toast, useDashboardToasts } from "./ui";
 
@@ -110,7 +109,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   if (!ready) return null;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#F7F9FB] text-[#191C1E]" style={{ backgroundColor: PAYTRAKA_COLORS.background, color: PAYTRAKA_COLORS.text }}>
+    <div className="dashboard-theme min-h-screen overflow-x-hidden bg-[#F7F9FB] text-[#191C1E]">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
       <div className="min-w-0 lg:pl-[272px]">
         <Topbar mode={mode} setMode={setMode} setSidebarOpen={setSidebarOpen} />

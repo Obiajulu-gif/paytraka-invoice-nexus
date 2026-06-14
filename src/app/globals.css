@@ -161,7 +161,8 @@ body {
 }
 
 .public-theme,
-.onboarding-theme {
+.onboarding-theme,
+.dashboard-theme {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   transition: background-color 180ms ease, color 180ms ease;
@@ -172,7 +173,10 @@ body {
 .dark .public-theme .bg-white,
 .dark .onboarding-theme .bg-\[\#F5F6FA\],
 .dark .onboarding-theme .bg-\[\#F7F9FB\],
-.dark .onboarding-theme .bg-white {
+.dark .onboarding-theme .bg-white,
+.dark .dashboard-theme,
+.dark .dashboard-theme .bg-\[\#F7F9FB\],
+.dark .dashboard-theme .bg-white {
   background-color: hsl(var(--card));
 }
 
@@ -184,7 +188,12 @@ body {
 .dark .public-theme .bg-\[\#E8EAED\],
 .dark .onboarding-theme .bg-\[\#EEF1FF\],
 .dark .onboarding-theme .bg-\[\#DADEFD\],
-.dark .onboarding-theme .bg-\[\#DFE3E8\] {
+.dark .onboarding-theme .bg-\[\#DFE3E8\],
+.dark .dashboard-theme .bg-\[\#F1F4F8\],
+.dark .dashboard-theme .bg-\[\#EEF1F5\],
+.dark .dashboard-theme .bg-\[\#EEF1FF\],
+.dark .dashboard-theme .bg-\[\#EAEDFF\],
+.dark .dashboard-theme .bg-\[\#E8ECF3\] {
   background-color: hsl(var(--muted));
 }
 
@@ -199,26 +208,38 @@ body {
   color: hsl(var(--foreground));
 }
 
+.dark .dashboard-theme,
+.dark .dashboard-theme .text-\[\#191C1E\] {
+  color: hsl(var(--foreground));
+}
+
 .dark .public-theme .text-\[\#454557\],
 .dark .public-theme .text-\[\#66728A\],
 .dark .public-theme .text-\[\#757588\],
 .dark .onboarding-theme .text-\[\#454557\],
 .dark .onboarding-theme .text-\[\#757588\],
-.dark .onboarding-theme .placeholder\:text-\[\#9CA0AA\]::placeholder {
+.dark .onboarding-theme .placeholder\:text-\[\#9CA0AA\]::placeholder,
+.dark .dashboard-theme .text-\[\#454557\],
+.dark .dashboard-theme .text-\[\#757588\] {
   color: hsl(var(--muted-foreground));
 }
 
 .dark .public-theme .text-\[\#0001B1\],
 .dark .public-theme .text-\[\#1117E8\],
 .dark .onboarding-theme .text-\[\#0001B1\],
-.dark .onboarding-theme .text-\[\#1117E8\] {
+.dark .onboarding-theme .text-\[\#1117E8\],
+.dark .dashboard-theme .text-\[\#0001B1\],
+.dark .dashboard-theme .text-\[\#1117E8\] {
   color: hsl(var(--primary));
 }
 
 .dark .public-theme .border-\[\#C5C4DA\],
 .dark .public-theme .border-\[\#D7DEE8\],
 .dark .onboarding-theme .border-\[\#C5C4DA\],
-.dark .onboarding-theme .border-\[\#D7DEE8\] {
+.dark .onboarding-theme .border-\[\#D7DEE8\],
+.dark .dashboard-theme .border-\[\#C5C4DA\],
+.dark .dashboard-theme .border-\[\#D7DEE8\],
+.dark .dashboard-theme .divide-\[\#DCE0E8\] > :not([hidden]) ~ :not([hidden]) {
   border-color: hsl(var(--border));
 }
 
@@ -227,23 +248,36 @@ body {
 .dark .public-theme select,
 .dark .onboarding-theme input,
 .dark .onboarding-theme textarea,
-.dark .onboarding-theme select {
+.dark .onboarding-theme select,
+.dark .dashboard-theme input,
+.dark .dashboard-theme textarea,
+.dark .dashboard-theme select {
   background-color: hsl(var(--card));
   color: hsl(var(--foreground));
+}
+
+.dark .dashboard-theme thead,
+.dark .dashboard-theme tbody tr,
+.dark .dashboard-theme [role="menu"] {
+  background-color: hsl(var(--card));
 }
 
 .dark .public-theme .shadow-sm,
 .dark .public-theme .shadow-xl,
 .dark .public-theme .shadow-2xl,
 .dark .onboarding-theme .shadow-xl,
-.dark .onboarding-theme .shadow-2xl {
+.dark .onboarding-theme .shadow-2xl,
+.dark .dashboard-theme .shadow-xl,
+.dark .dashboard-theme .shadow-2xl {
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
 }
 
 .dark .public-theme .bg-\[\#0001B1\],
 .dark .public-theme .bg-\[\#1117E8\],
 .dark .onboarding-theme .bg-\[\#0001B1\],
-.dark .onboarding-theme .bg-\[\#1117E8\] {
+.dark .onboarding-theme .bg-\[\#1117E8\],
+.dark .dashboard-theme .bg-\[\#0001B1\],
+.dark .dashboard-theme .bg-\[\#1117E8\] {
   background-color: #3f5cff;
 }
 

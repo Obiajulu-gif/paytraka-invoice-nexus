@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Copy,
   Download,
+  Edit3,
   Eye,
   FileCheck2,
   Filter,
@@ -15,11 +16,13 @@ import {
   Printer,
   ShieldCheck,
   ShoppingCart,
+  Send,
+  Trash2,
   Upload,
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StatusTone, TableRow } from "./types";
 
 const DASHBOARD_TOAST_EVENT = "paytraka-dashboard-toast";
@@ -73,15 +76,15 @@ export function Card({ children, className = "", ...props }: React.HTMLAttribute
   return <section className={`min-w-0 rounded-2xl border border-[#C5C4DA] bg-white ${className}`} {...props}>{children}</section>;
 }
 
-export function Button({ children, variant = "primary", className = "", href, type = "button", onClick }: { children: React.ReactNode; variant?: "primary" | "secondary" | "ghost" | "danger"; className?: string; href?: string; type?: "button" | "submit"; onClick?: () => void }) {
+export function Button({ children, variant = "primary", className = "", href, type = "button", onClick, disabled = false }: { children: React.ReactNode; variant?: "primary" | "secondary" | "ghost" | "danger"; className?: string; href?: string; type?: "button" | "submit"; onClick?: () => void; disabled?: boolean }) {
   const classes = {
     primary: "bg-[#1117E8] text-white shadow-[0_12px_28px_rgba(17,23,232,0.2)] hover:bg-[#0001B1]",
     secondary: "border border-[#C5C4DA] bg-white text-[#0001B1] hover:border-[#1117E8]",
     ghost: "bg-[#F1F4F8] text-[#191C1E] hover:bg-[#DADEFD]",
     danger: "bg-red-600 text-white hover:bg-red-700",
   }[variant];
-  const content = `inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-xl px-4 text-center text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8] ${classes} ${className}`;
-  return href ? <Link href={href} className={content}>{children}</Link> : <button type={type} onClick={onClick} className={content}>{children}</button>;
+  const content = `inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-xl px-4 text-center text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1117E8] disabled:cursor-not-allowed disabled:opacity-60 ${classes} ${className}`;
+  return href ? <Link href={href} className={content} aria-disabled={disabled}>{children}</Link> : <button type={type} onClick={onClick} disabled={disabled} className={content}>{children}</button>;
 }
 
 export function PageHeader({ title, subtitle, action, breadcrumb }: { title: string; subtitle: string; action?: React.ReactNode; breadcrumb?: string }) {
@@ -152,8 +155,76 @@ export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 recor
   );
 }
 
+const defaultActionItems = [
+  ["View", Eye],
+  ["Edit", Edit3],
+  ["Duplicate", Copy],
+  ["Send", Send],
+  ["Download", Download],
+  ["Delete", Trash2],
+] as const;
+
+function RowActions({ extra, label }: { extra?: React.ReactNode; label: string }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div className="relative flex items-center gap-2" ref={menuRef}>
+      {extra}
+      <button type="button" onClick={() => notifyDashboard(`Opened ${label} details`)} aria-label={`View ${label}`} className="rounded-lg p-2 text-[#454557] transition hover:bg-[#F1F4F8] hover:text-[#0001B1]">
+        <Eye className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label={`Actions for ${label}`}
+        className="rounded-lg p-2 text-[#454557] transition hover:bg-[#F1F4F8] hover:text-[#0001B1]"
+      >
+        <MoreVertical className="h-4 w-4" />
+      </button>
+      {open ? (
+        <div role="menu" className="absolute right-0 top-10 z-40 w-44 overflow-hidden rounded-xl border border-[#C5C4DA] bg-white py-2 shadow-2xl">
+          {defaultActionItems.map(([action, Icon]) => (
+            <button
+              key={action}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                notifyDashboard(`${action} selected for ${label}`);
+              }}
+              className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm font-semibold transition hover:bg-[#F1F4F8] ${action === "Delete" ? "text-red-600" : "text-[#454557]"}`}
+            >
+              <Icon className="h-4 w-4" aria-hidden="true" />
+              {action}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function rowActions(extra?: React.ReactNode, label = "record") {
-  return <div className="flex items-center gap-2">{extra}<button type="button" onClick={() => notifyDashboard(`Opened ${label} details`)} aria-label={`View ${label}`} className="rounded p-1 text-[#454557]"><Eye className="h-4 w-4" /></button><button type="button" onClick={() => notifyDashboard(`More actions opened for ${label}`)} aria-label={`More actions for ${label}`} className="rounded p-1 text-[#454557]"><MoreVertical className="h-4 w-4" /></button></div>;
+  return <RowActions extra={extra} label={label} />;
 }
 
 export function FilterBar({ labels = ["Date range", "Payment status", "FIRS status", "More filters"] }: { labels?: string[] }) {
@@ -179,16 +250,18 @@ export function SupportCard() {
   );
 }
 
-export function Input({ label, value = "", wide = false }: { label: string; value?: string; wide?: boolean }) {
+export function Input({ label, value = "", wide = false, name }: { label: string; value?: string; wide?: boolean; name?: string }) {
   const isMessage = label.toLowerCase().includes("message") || label.toLowerCase().includes("note") || label.toLowerCase().includes("notes");
-  return <label className={`block text-sm font-bold text-[#454557] ${wide ? "md:col-span-2" : ""}`}>{label}<textarea rows={isMessage ? 4 : 1} defaultValue={value} placeholder={label} className="mt-2 w-full resize-none rounded-lg border border-[#C5C4DA] bg-white px-3 py-3 text-[#191C1E] outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" /></label>;
+  return <label className={`block text-sm font-bold text-[#454557] ${wide ? "md:col-span-2" : ""}`}>{label}<textarea name={name ?? label} rows={isMessage ? 4 : 1} defaultValue={value} placeholder={label} className="mt-2 w-full resize-none rounded-lg border border-[#C5C4DA] bg-white px-3 py-3 text-[#191C1E] outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" /></label>;
 }
 
 export function CheckLine({ label }: { label: string }) {
   return <label className="mt-4 flex items-center gap-3 text-sm font-semibold"><input type="checkbox" defaultChecked className="h-4 w-4 accent-[#1117E8]" /> {label}</label>;
 }
 
-export function DashboardFormModal({ open, title, description, fields, onClose, submitLabel = "Save", onSubmit, successMessage }: { open: boolean; title: string; description: string; fields: string[]; onClose: () => void; submitLabel?: string; onSubmit?: () => void; successMessage?: string }) {
+export function DashboardFormModal({ open, title, description, fields, onClose, submitLabel = "Save", onSubmit, successMessage }: { open: boolean; title: string; description: string; fields: string[]; onClose: () => void; submitLabel?: string; onSubmit?: (values?: Record<string, string>) => void | Promise<void>; successMessage?: string }) {
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -200,15 +273,25 @@ export function DashboardFormModal({ open, title, description, fields, onClose, 
 
   if (!open) return null;
 
-  const handleSubmit = () => {
-    onSubmit?.();
-    onClose();
-    notifyDashboard(successMessage ?? `${submitLabel} successful`);
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const values = Object.fromEntries(new FormData(event.currentTarget).entries()) as Record<string, string>;
+    setSubmitting(true);
+    try {
+      await onSubmit?.(values);
+      onClose();
+      notifyDashboard(successMessage ?? `${submitLabel} successful`);
+    } catch (error) {
+      notifyDashboard(error instanceof Error ? error.message : `${submitLabel} failed`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-[70] grid place-items-center overflow-y-auto bg-[#191C1E]/45 p-3 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-labelledby="dashboard-modal-title" onMouseDown={onClose}>
       <Card className="max-h-[92vh] w-full max-w-2xl overflow-hidden shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
+        <form onSubmit={handleSubmit}>
         <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-6">
           <div>
             <h2 id="dashboard-modal-title" className="text-2xl font-bold text-[#191C1E]">{title}</h2>
@@ -223,8 +306,9 @@ export function DashboardFormModal({ open, title, description, fields, onClose, 
         </div>
         <div className="flex flex-col gap-3 border-t border-[#C5C4DA] bg-white p-6 sm:flex-row sm:justify-end">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>{submitLabel}</Button>
+          <Button type="submit" disabled={submitting}>{submitting ? "Saving..." : submitLabel}</Button>
         </div>
+        </form>
       </Card>
     </div>
   );
@@ -235,8 +319,8 @@ function FieldControl({ field }: { field: string }) {
     return <div className="md:col-span-2 rounded-xl border border-dashed border-[#C5C4DA] bg-[#F7F9FB] p-8 text-center"><Upload className="mx-auto h-8 w-8 text-[#757588]" /><p className="mt-3 font-bold">Click to upload or drag and drop</p><p className="mt-1 text-sm text-[#757588]">TIN certificate, contract, or KYC documents (PDF, JPG up to 10MB)</p></div>;
   }
   if (field.startsWith("Automatically") || field.startsWith("Attach")) return <CheckLine label={field} />;
-  if (field === "VAT Registered") return <label className="flex items-center justify-between gap-3 rounded-xl bg-[#F1F4F8] p-4 text-sm font-bold text-[#454557] md:col-span-2">VAT Registered <input type="checkbox" defaultChecked className="h-5 w-5 shrink-0 accent-[#1117E8]" /></label>;
-  return <Input label={field} wide={field.includes("Address") || field.includes("Message") || field.includes("Notes")} />;
+  if (field === "VAT Registered") return <label className="flex items-center justify-between gap-3 rounded-xl bg-[#F1F4F8] p-4 text-sm font-bold text-[#454557] md:col-span-2">VAT Registered <input name={field} type="checkbox" defaultChecked className="h-5 w-5 shrink-0 accent-[#1117E8]" /></label>;
+  return <Input name={field} label={field} wide={field.includes("Address") || field.includes("Message") || field.includes("Notes")} />;
 }
 
 export function FormShell({ title, sideTitle, sections, buttons }: { title: string; sideTitle: string; sections: [string, string[]][]; buttons: string[] }) {
