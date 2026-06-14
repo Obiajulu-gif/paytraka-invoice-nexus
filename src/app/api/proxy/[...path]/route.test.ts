@@ -57,6 +57,27 @@ describe("/api/proxy/[...path] route", () => {
     expect(init.body).toBe(body);
   });
 
+  it("allows OTP resend without an existing session cookie", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
+      success: true,
+      message: "A new verification code has been sent.",
+      data: null,
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const body = JSON.stringify({ user_id: "user-1" });
+
+    const response = await POST(request("http://localhost/api/proxy/auth/resend-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+    }), context(["auth", "resend-otp"]));
+
+    expect(response.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0] as [URL, RequestInit];
+    expect(url.toString()).toBe("https://paytraka-api.domain-plusltd.com/api/auth/resend-otp");
+    expect((init.headers as Headers).get("Authorization")).toBeNull();
+    expect(init.body).toBe(body);
+  });
+
   it("rejects requests with a missing proxy path", async () => {
     cookieValues.set("paytraka_access_token", "access-token");
     const fetchMock = vi.spyOn(globalThis, "fetch");

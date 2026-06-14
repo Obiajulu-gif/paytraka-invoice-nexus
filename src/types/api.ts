@@ -53,13 +53,18 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-  user_id: string;
+  user_id?: string;
+  userId?: string;
   user?: AuthUser;
 }
 
 export interface VerifyOtpRequest {
   user_id: string;
   otp: string;
+}
+
+export interface ResendOtpRequest {
+  user_id: string;
 }
 
 export interface LoginRequest {

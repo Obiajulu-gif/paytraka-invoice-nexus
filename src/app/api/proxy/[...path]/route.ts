@@ -22,7 +22,7 @@ async function proxyRequest(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ success: false, message: "API path is required" }, { status: 400 });
   }
 
-  const isPublicAuthPath = path[0] === "auth" && ["login", "register", "verify-otp"].includes(path[1] ?? "");
+  const isPublicAuthPath = path[0] === "auth" && ["login", "register", "verify-otp", "resend-otp"].includes(path[1] ?? "");
 
   if (!accessToken && !isPublicAuthPath) {
     return NextResponse.json({ success: false, message: "Authentication required" }, { status: 401 });

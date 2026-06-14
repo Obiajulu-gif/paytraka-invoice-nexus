@@ -41,7 +41,7 @@ import {
   saveOnboardingState,
 } from "@/lib/onboarding-store";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { getMe, login, register, verifyOtp } from "@/lib/api/auth";
+import { getMe, getRegisteredUserId, login, register, resendOtp, verifyOtp } from "@/lib/api/auth";
 import { submitKyc } from "@/lib/api/companies";
 import { getAuthPageRedirect, getAuthSuccessRedirect } from "@/lib/auth-flow";
 
@@ -383,7 +383,7 @@ export function SignupPage() {
         trading_name: form.tradingName || undefined,
       });
       const signup: SignupData = {
-        userId: response.data.user_id ?? response.data.user?.id ?? "",
+        userId: getRegisteredUserId(response.data),
         firstName: form.firstName,
         lastName: form.lastName,
         workEmail: form.workEmail,
@@ -532,7 +532,9 @@ export function VerifyEmailPage() {
   const { state, save } = useOnboarding();
   const [code, setCode] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
   const refs = useRef<Array<HTMLInputElement | null>>([]);
 
   useOnboardingGuard("verify");
@@ -558,6 +560,7 @@ export function VerifyEmailPage() {
     }
     setSubmitting(true);
     setError("");
+    setNotice("");
     try {
       const response = await verifyOtp(state.signup.userId, otp);
       save({ signup: { emailVerified: true }, currentStep: response.data.user.kyc_complete ? "complete" : "business-details", completed: Boolean(response.data.user.kyc_complete) });
@@ -566,6 +569,24 @@ export function VerifyEmailPage() {
       setError(getApiErrorMessage(requestError, "Unable to verify OTP."));
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function resend() {
+    if (!state.signup.userId) {
+      setError("Registration session expired. Please create your workspace again.");
+      return;
+    }
+    setResending(true);
+    setError("");
+    setNotice("");
+    try {
+      const response = await resendOtp(state.signup.userId);
+      setNotice(response.message ?? "A new verification code has been sent.");
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, "Unable to resend the verification code."));
+    } finally {
+      setResending(false);
     }
   }
 
@@ -600,8 +621,9 @@ export function VerifyEmailPage() {
           ))}
         </div>
         {error ? <p className="mt-4 text-sm font-semibold text-red-600">{error}</p> : null}
+        {notice ? <p className="mt-4 text-sm font-semibold text-green-700">{notice}</p> : null}
         <button disabled={submitting} className="mt-10 h-16 rounded-xl bg-[#1117E8] text-xl font-bold text-white transition hover:bg-[#0001B1] disabled:opacity-60">{submitting ? "Verifying..." : "Verify & Continue"}</button>
-        <p className="mt-7 text-center text-lg text-[#454557]">Didn&apos;t receive a code? <button type="button" onClick={() => setError("Request a new OTP from the registration email flow.")} className="font-bold text-[#0001B1]">Resend</button></p>
+        <p className="mt-7 text-center text-lg text-[#454557]">Didn&apos;t receive a code? <button type="button" disabled={resending} onClick={resend} className="font-bold text-[#0001B1] disabled:opacity-60">{resending ? "Sending..." : "Resend"}</button></p>
       </form>
     </AuthOnboardingLayout>
   );
