@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ChevronDown, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { useCustomers } from "@/hooks/useCustomers";
@@ -159,87 +159,91 @@ function SalesInvoiceBuilder() {
       {customersError || productsError ? <ComplianceAlert title="Unable to load API data" text={customersError || productsError} /> : null}
       {formError ? <ComplianceAlert title="Invoice cannot be created yet" text={formError} tone="warning" /> : null}
 
-      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="space-y-6">
-          <Card className="p-6">
-            <h2 className="text-xl font-bold">Customer & Invoice Details</h2>
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-              <label className="block text-sm font-bold text-[#454557] md:col-span-2">Customer
-                <div className="mt-2 grid gap-2 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
-                  <input
-                    value={customerSearch}
-                    onChange={(event) => setCustomerSearch(event.target.value)}
-                    placeholder="Search customer or type a new customer name"
-                    className="h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]"
-                  />
-                  <select value={customerId} onChange={(event) => {
-                    setCustomerId(event.target.value);
-                    setCustomerSearch(customers.find((customer) => customer.id === event.target.value)?.name ?? customerSearch);
-                  }} disabled={customersLoading} className="h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
-                    <option value="">{customersLoading ? "Loading customers..." : "Select customer"}</option>
-                    {filteredCustomers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} {!customer.tax_identification_number ? "(TIN missing)" : ""}</option>)}
-                  </select>
-                  <Button variant="secondary" onClick={quickCreateCustomer} className="min-h-11 whitespace-nowrap px-3" disabled={creatingCustomer}>
-                    {creatingCustomer ? "Creating..." : "Quick Create"}
-                  </Button>
-                </div>
-              </label>
-              <label className="block text-sm font-bold text-[#454557]">Invoice Type
-                <select value={invoiceType} onChange={(event) => setInvoiceType(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
-                  <option value="standard_invoice">Standard invoice</option>
-                  <option value="credit_note">Credit note</option>
-                  <option value="debit_note">Debit note</option>
+      <div className="space-y-6">
+        <Card className="p-6">
+          <h2 className="text-xl font-bold">Customer & Invoice Details</h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <label className="block text-sm font-bold text-[#454557] md:col-span-2">Customer
+              <div className="mt-2 grid gap-2 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
+                <input
+                  value={customerSearch}
+                  onChange={(event) => setCustomerSearch(event.target.value)}
+                  placeholder="Search customer or type a new customer name"
+                  className="h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]"
+                />
+                <select value={customerId} onChange={(event) => {
+                  setCustomerId(event.target.value);
+                  setCustomerSearch(customers.find((customer) => customer.id === event.target.value)?.name ?? customerSearch);
+                }} disabled={customersLoading} className="h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
+                  <option value="">{customersLoading ? "Loading customers..." : "Select customer"}</option>
+                  {filteredCustomers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} {!customer.tax_identification_number ? "(TIN missing)" : ""}</option>)}
                 </select>
-              </label>
-              <label className="block text-sm font-bold text-[#454557]">Issue Date
-                <input type="date" value={issueDate} onChange={(event) => setIssueDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
-              </label>
-              <label className="block text-sm font-bold text-[#454557]">Due Date
-                <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
-              </label>
-              <label className="block text-sm font-bold text-[#454557]">Currency
-                <select value={currency} onChange={(event) => setCurrency(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
-                  {["NGN", "USD", "GBP", "EUR"].map((option) => <option key={option} value={option}>{option}</option>)}
-                </select>
-              </label>
-            </div>
-          </Card>
-
-          <Card className="overflow-hidden">
-            <div className="flex flex-col gap-3 border-b border-[#C5C4DA] bg-[#F7F9FB] p-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-bold">Invoice Items</h2>
-                <p className="mt-1 text-sm text-[#454557]">Choose products/services from your API catalog, then adjust quantity and VAT.</p>
+                <Button variant="secondary" onClick={quickCreateCustomer} className="min-h-11 whitespace-nowrap px-3" disabled={creatingCustomer}>
+                  {creatingCustomer ? "Creating..." : "Quick Create"}
+                </Button>
               </div>
-              <Button variant="secondary" onClick={addItem}><Plus className="h-4 w-4" /> Add Item</Button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[920px] text-left">
-                <thead className="bg-[#F1F4F8] text-xs uppercase text-[#454557]">
-                  <tr>{["Product / Service", "Description", "Qty", "Rate", "VAT %", "Line Total", ""].map((column) => <th key={column} className="px-4 py-4">{column}</th>)}</tr>
-                </thead>
-                <tbody className="divide-y divide-[#DCE0E8]">
-                  {lineItems.map((item) => (
-                    <tr key={item.id}>
-                      <td className="px-4 py-4">
-                        <select value={item.productId} onChange={(event) => chooseProduct(item.id, event.target.value)} disabled={productsLoading} className="h-10 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm font-semibold outline-none focus:border-[#1117E8]">
-                          <option value="">Custom item</option>
-                          {products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}
-                        </select>
-                      </td>
-                      <td className="px-4 py-4"><input value={item.description} onChange={(event) => updateItem(item.id, { description: event.target.value })} className="h-10 w-full rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
-                      <td className="px-4 py-4"><input aria-label={`Quantity for ${item.description}`} type="number" min="1" value={item.quantity} onChange={(event) => updateItem(item.id, { quantity: Number(event.target.value) || 1 })} className="h-10 w-20 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
-                      <td className="px-4 py-4"><input aria-label={`Rate for ${item.description}`} type="number" min="0" value={item.rate} onChange={(event) => updateItem(item.id, { rate: Number(event.target.value) || 0 })} className="h-10 w-28 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
-                      <td className="px-4 py-4"><input aria-label={`VAT for ${item.description}`} type="number" min="0" value={item.vatRate} onChange={(event) => updateItem(item.id, { vatRate: Number(event.target.value) || 0 })} className="h-10 w-20 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" /></td>
-                      <td className="px-4 py-4 font-bold"><CurrencyAmount amount={lineTotal(item)} /></td>
-                      <td className="px-4 py-4 text-red-600"><button type="button" onClick={() => setLineItems((current) => current.filter(({ id }) => id !== item.id))} aria-label={`Remove ${item.description}`} className="rounded-lg p-2 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+            </label>
+            <label className="block text-sm font-bold text-[#454557]">Invoice Type
+              <select value={invoiceType} onChange={(event) => setInvoiceType(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
+                <option value="standard_invoice">Standard invoice</option>
+                <option value="credit_note">Credit note</option>
+                <option value="debit_note">Debit note</option>
+              </select>
+            </label>
+            <label className="block text-sm font-bold text-[#454557]">Issue Date
+              <input type="date" value={issueDate} onChange={(event) => setIssueDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
+            </label>
+            <label className="block text-sm font-bold text-[#454557]">Due Date
+              <input type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
+            </label>
+            <label className="block text-sm font-bold text-[#454557]">Currency
+              <select value={currency} onChange={(event) => setCurrency(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
+                {["NGN", "USD", "GBP", "EUR"].map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+          </div>
+        </Card>
 
+        <Card className="overflow-hidden">
+          <div className="flex flex-col gap-3 border-b border-[#C5C4DA] bg-[#F7F9FB] p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-xl font-bold">Invoice Items</h2>
+              <p className="mt-1 text-sm text-[#454557]">Choose products/services from your API catalog, then adjust quantity, rate, VAT, and totals.</p>
+            </div>
+            <Button variant="secondary" onClick={addItem}><Plus className="h-4 w-4" /> Add Item</Button>
+          </div>
+          <div className="divide-y divide-[#DCE0E8]">
+            {lineItems.map((item) => (
+              <div key={item.id} className="grid gap-4 p-5 xl:grid-cols-[minmax(190px,1.1fr)_minmax(220px,1.4fr)_88px_120px_96px_140px_40px] xl:items-end">
+                <label className="text-sm font-bold text-[#454557]">Product / Service
+                  <select value={item.productId} onChange={(event) => chooseProduct(item.id, event.target.value)} disabled={productsLoading} className="mt-2 h-10 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm font-semibold outline-none focus:border-[#1117E8]">
+                    <option value="">Custom item</option>
+                    {products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}
+                  </select>
+                </label>
+                <label className="text-sm font-bold text-[#454557]">Description
+                  <input value={item.description} onChange={(event) => updateItem(item.id, { description: event.target.value })} className="mt-2 h-10 w-full rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" />
+                </label>
+                <label className="text-sm font-bold text-[#454557]">Qty
+                  <input aria-label={`Quantity for ${item.description}`} type="number" min="1" value={item.quantity} onChange={(event) => updateItem(item.id, { quantity: Number(event.target.value) || 1 })} className="mt-2 h-10 w-full rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" />
+                </label>
+                <label className="text-sm font-bold text-[#454557]">Rate
+                  <input aria-label={`Rate for ${item.description}`} type="number" min="0" value={item.rate} onChange={(event) => updateItem(item.id, { rate: Number(event.target.value) || 0 })} className="mt-2 h-10 w-full rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" />
+                </label>
+                <label className="text-sm font-bold text-[#454557]">VAT %
+                  <input aria-label={`VAT for ${item.description}`} type="number" min="0" value={item.vatRate} onChange={(event) => updateItem(item.id, { vatRate: Number(event.target.value) || 0 })} className="mt-2 h-10 w-full rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" />
+                </label>
+                <div className="rounded-xl bg-[#F1F4F8] p-3 text-sm">
+                  <p className="font-semibold text-[#454557]">Line Total</p>
+                  <p className="mt-1 text-lg font-extrabold text-[#0001B1]"><CurrencyAmount amount={lineTotal(item)} /></p>
+                </div>
+                <button type="button" onClick={() => setLineItems((current) => current.filter(({ id }) => id !== item.id))} aria-label={`Remove ${item.description}`} className="h-10 rounded-lg p-2 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           <Card className="p-6">
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block text-sm font-bold text-[#454557]">Discount Amount
@@ -250,9 +254,8 @@ function SalesInvoiceBuilder() {
               </label>
             </div>
           </Card>
-        </div>
 
-        <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
+          <aside className="xl:sticky xl:top-24 xl:self-start">
           <Card className="p-6">
             <h2 className="text-xl font-bold">Invoice Summary</h2>
             <div className="mt-5 space-y-3 text-sm">
@@ -268,11 +271,8 @@ function SalesInvoiceBuilder() {
               <Button onClick={saveInvoice}>{saving ? "Creating..." : "Create Invoice"}</Button>
             </div>
           </Card>
-          <Card className="bg-[#EAEDFF] p-5">
-            <h3 className="flex items-center gap-2 font-bold text-[#0001B1]"><ChevronDown className="h-4 w-4" /> Workflow</h3>
-            <p className="mt-3 text-sm leading-6 text-[#454557]">Create invoices from verified customers and catalog items, then send from the Sales Invoices queue.</p>
-          </Card>
-        </aside>
+          </aside>
+        </div>
       </div>
     </>
   );

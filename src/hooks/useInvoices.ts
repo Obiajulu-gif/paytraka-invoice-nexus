@@ -43,5 +43,17 @@ export function useInvoices() {
     return response;
   }
 
-  return { invoices, pagination, pager, loading, error, refresh, create, post, update: invoicesApi.updateInvoice, getInvoice: invoicesApi.getInvoice };
+  async function update(id: string, data: Partial<SalesInvoiceRequest>) {
+    const response = await invoicesApi.updateInvoice(id, data);
+    await refresh();
+    return response;
+  }
+
+  async function remove(id: string) {
+    const response = await invoicesApi.deleteInvoice(id);
+    await refresh();
+    return response;
+  }
+
+  return { invoices, pagination, pager, loading, error, refresh, create, post, update, remove, getInvoice: invoicesApi.getInvoice };
 }

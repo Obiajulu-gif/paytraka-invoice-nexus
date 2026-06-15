@@ -1,14 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { Building2, CheckCircle2, Landmark, Palette, Save, ShieldCheck } from "lucide-react";
+import { Building2, CheckCircle2, Landmark, Save, ShieldCheck } from "lucide-react";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { getMe } from "@/lib/api/auth";
 import { submitKyc } from "@/lib/api/companies";
 import {
   BankDetailsData,
   BusinessDetailsData,
-  PreferencesData,
   getOnboardingState,
   saveOnboardingState,
 } from "@/lib/onboarding-store";
@@ -46,9 +45,6 @@ const businessTypes = ["Limited Liability Company", "Business Name", "Enterprise
 const industries = ["Technology", "Professional Services", "Retail", "Logistics", "Manufacturing", "Agriculture", "Financial Services", "Hospitality"];
 const states = ["Lagos", "Abuja FCT", "Ogun", "Oyo", "Rivers", "Kano", "Kaduna", "Enugu", "Anambra", "Delta"];
 const banks = ["Access Bank", "Zenith Bank", "GTBank", "First Bank", "UBA", "Stanbic IBTC", "Fidelity Bank", "Sterling Bank", "Wema Bank", "Opay"];
-const templates = ["Classic", "Modern", "Minimal", "Bold Cards"];
-const colors = ["Blue", "Purple", "Green", "Orange", "Slate"];
-
 function validateBusiness(data: BusinessDetailsData) {
   const errors: Record<string, string> = {};
   (["businessName", "businessType", "industry", "taxId", "contactPerson", "businessEmail", "phoneNumber", "businessAddress", "city", "state", "country"] as Array<keyof BusinessDetailsData>).forEach((key) => {
@@ -82,7 +78,6 @@ function SectionCard({ icon: Icon, title, children }: { icon: React.ElementType;
 export function KycPage() {
   const [business, setBusiness] = useState<BusinessDetailsData>(getOnboardingState().businessDetails);
   const [bank, setBank] = useState<BankDetailsData>(getOnboardingState().bankDetails);
-  const [preferences, setPreferences] = useState<PreferencesData>(getOnboardingState().preferences);
   const [businessErrors, setBusinessErrors] = useState<Record<string, string>>({});
   const [bankErrors, setBankErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -99,7 +94,6 @@ export function KycPage() {
       contactPerson: state.businessDetails.contactPerson || `${state.signup.firstName} ${state.signup.lastName}`.trim(),
     });
     setBank(state.bankDetails);
-    setPreferences(state.preferences);
   }, []);
 
   async function submit(event: FormEvent) {
@@ -115,7 +109,7 @@ export function KycPage() {
     }
 
     setSubmitting(true);
-    saveOnboardingState({ businessDetails: business, bankDetails: bank, preferences });
+    saveOnboardingState({ businessDetails: business, bankDetails: bank });
     try {
       const me = await getMe();
       await submitKyc(me.data.company_id, {
@@ -145,7 +139,7 @@ export function KycPage() {
     <form onSubmit={submit} className="mx-auto max-w-7xl">
       <PageHeader
         title="KYC"
-        subtitle="Complete business, bank, and workspace preferences inside your dashboard. These details support invoice validation and FIRS/NRS submission preparation."
+        subtitle="Complete business and bank details inside your dashboard. These details support invoice validation and FIRS/NRS submission preparation."
         action={<Button type="submit" disabled={submitting}><Save className="h-4 w-4" />{submitting ? "Saving..." : "Save KYC"}</Button>}
       />
 
@@ -186,16 +180,6 @@ export function KycPage() {
             </div>
           </SectionCard>
 
-          <SectionCard icon={Palette} title="Preferences">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Brand Accent Color"><select className={selectClass} value={preferences.accentColor} onChange={(event) => setPreferences({ ...preferences, accentColor: event.target.value })}>{colors.map((item) => <option key={item}>{item}</option>)}</select></Field>
-              <Field label="Default Invoice Template"><select className={selectClass} value={preferences.invoiceTemplate} onChange={(event) => setPreferences({ ...preferences, invoiceTemplate: event.target.value })}>{templates.map((item) => <option key={item}>{item}</option>)}</select></Field>
-            </div>
-            <label className="mt-4 flex items-start gap-3 rounded-xl bg-[#F1F4F8] p-4 text-sm font-semibold text-[#454557]">
-              <input type="checkbox" checked={preferences.confirmedAccuracy} onChange={(event) => setPreferences({ ...preferences, confirmedAccuracy: event.target.checked })} className="mt-1 h-4 w-4 rounded border-[#C5C4DA]" />
-              I confirm that these business and settlement details are accurate for invoice readiness and compliance reporting workflows.
-            </label>
-          </SectionCard>
         </div>
 
         <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
@@ -212,7 +196,7 @@ export function KycPage() {
                 ["Workspace", business.businessName || "Not provided"],
                 ["TIN / RC", business.taxId || "Not provided"],
                 ["Bank", bank.bankName || "Not provided"],
-                ["Template", preferences.invoiceTemplate],
+                ["Payment", bank.paymentMethod || "Not provided"],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between gap-4 border-b border-[#DCE0E8] pb-3">
                   <span className="text-[#757588]">{label}</span>

@@ -45,6 +45,11 @@ const routeMap: Record<string, DashboardKind> = {
   subscription: "subscription",
   support: "support",
   settings: "settings",
+  "settings/preferences": "settings",
+  "settings/compliance": "settings",
+  "settings/users": "settings",
+  "settings/notifications": "settings",
+  "settings/security": "settings",
 };
 
 function dashboardKindFromSlug(slug?: string[]) {

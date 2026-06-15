@@ -22,7 +22,8 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { StatusTone, TableRow } from "./types";
 
 const DASHBOARD_TOAST_EVENT = "paytraka-dashboard-toast";
@@ -221,33 +222,66 @@ const defaultActionItems = [
   ["Delete", Trash2],
 ] as const;
 
-function RowActions({ extra, label }: { extra?: React.ReactNode; label: string }) {
+export type RowActionItem = {
+  label: string;
+  icon?: React.ElementType;
+  tone?: "default" | "danger";
+  onSelect: () => void;
+};
+
+function RowActions({ extra, label, actions = [] }: { extra?: React.ReactNode; label: string; actions?: RowActionItem[] }) {
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const menuItems: RowActionItem[] = actions.length ? actions : defaultActionItems.map(([action, Icon]) => ({
+    label: action,
+    icon: Icon,
+    tone: action === "Delete" ? "danger" : "default",
+    onSelect: () => notifyDashboard(`${action} selected for ${label}`),
+  }));
+
+  const positionMenu = useCallback(() => {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const width = 192;
+    const left = Math.min(Math.max(12, rect.right - width), window.innerWidth - width - 12);
+    const top = Math.min(rect.bottom + 8, window.innerHeight - 260);
+    setMenuPosition({ top: Math.max(12, top), left });
+  }, []);
 
   useEffect(() => {
     if (!open) return;
+    positionMenu();
     const handlePointerDown = (event: PointerEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (menuRef.current?.contains(target) || buttonRef.current?.contains(target)) return;
+      setOpen(false);
     };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
+    const handleReposition = () => positionMenu();
     window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
     };
-  }, [open]);
+  }, [open, positionMenu]);
 
   return (
-    <div className="relative flex items-center gap-2" ref={menuRef}>
+    <div className="flex items-center gap-2">
       {extra}
       <button type="button" onClick={() => notifyDashboard(`Opened ${label} details`)} aria-label={`View ${label}`} className="rounded-lg p-2 text-[#454557] transition hover:bg-[#F1F4F8] hover:text-[#0001B1]">
         <Eye className="h-4 w-4" />
       </button>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-haspopup="menu"
@@ -257,31 +291,32 @@ function RowActions({ extra, label }: { extra?: React.ReactNode; label: string }
       >
         <MoreVertical className="h-4 w-4" />
       </button>
-      {open ? (
-        <div role="menu" className="absolute right-0 top-10 z-40 w-44 overflow-hidden rounded-xl border border-[#C5C4DA] bg-white py-2 shadow-2xl">
-          {defaultActionItems.map(([action, Icon]) => (
+      {open && typeof document !== "undefined" ? createPortal(
+        <div ref={menuRef} role="menu" style={{ top: menuPosition.top, left: menuPosition.left }} className="fixed z-[120] w-48 overflow-hidden rounded-xl border border-[#C5C4DA] bg-white py-2 shadow-2xl">
+          {menuItems.map(({ label: action, icon: Icon, tone = "default", onSelect }) => (
             <button
               key={action}
               type="button"
               role="menuitem"
               onClick={() => {
                 setOpen(false);
-                notifyDashboard(`${action} selected for ${label}`);
+                onSelect();
               }}
-              className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm font-semibold transition hover:bg-[#F1F4F8] ${action === "Delete" ? "text-red-600" : "text-[#454557]"}`}
+              className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm font-semibold transition hover:bg-[#F1F4F8] ${tone === "danger" ? "text-red-600" : "text-[#454557]"}`}
             >
-              <Icon className="h-4 w-4" aria-hidden="true" />
+              {Icon ? <Icon className="h-4 w-4" aria-hidden="true" /> : null}
               {action}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       ) : null}
     </div>
   );
 }
 
-export function rowActions(extra?: React.ReactNode, label = "record") {
-  return <RowActions extra={extra} label={label} />;
+export function rowActions(extra?: React.ReactNode, label = "record", actions?: RowActionItem[]) {
+  return <RowActions extra={extra} label={label} actions={actions} />;
 }
 
 export function FilterBar({ labels = ["Date range", "Payment status", "FIRS status", "More filters"] }: { labels?: string[] }) {

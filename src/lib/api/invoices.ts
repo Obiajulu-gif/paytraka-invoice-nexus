@@ -25,3 +25,8 @@ export async function updateInvoice(id: string, data: Partial<SalesInvoiceReques
   const response = await apiClient.patch<ApiResponse<SalesInvoice>>(`/sales-invoices/${id}`, data);
   return response.data;
 }
+
+export async function deleteInvoice(id: string) {
+  const response = await apiClient.delete<ApiResponse<null>>(`/sales-invoices/${id}`);
+  return response.data;
+}
