@@ -17,7 +17,7 @@ export function useSuppliers() {
     setLoading(true);
     setError("");
     try {
-      const response = await suppliersApi.listSuppliers({ page: pager.page, limit: pager.limit });
+      const response = await suppliersApi.listSuppliers({ page: pager.page, limit: pager.limit, search: pager.search });
       setSuppliers(response.data);
       setPagination(response.pagination);
     } catch (requestError) {
@@ -25,7 +25,7 @@ export function useSuppliers() {
     } finally {
       setLoading(false);
     }
-  }, [pager.limit, pager.page]);
+  }, [pager.limit, pager.page, pager.search]);
 
   useEffect(() => {
     refresh();
@@ -37,5 +37,17 @@ export function useSuppliers() {
     return response;
   }
 
-  return { suppliers, pagination, pager, loading, error, refresh, create, update: suppliersApi.updateSupplier, remove: suppliersApi.deleteSupplier };
+  async function update(id: string, data: Partial<SupplierRequest>) {
+    const response = await suppliersApi.updateSupplier(id, data);
+    await refresh();
+    return response;
+  }
+
+  async function remove(id: string) {
+    const response = await suppliersApi.deleteSupplier(id);
+    await refresh();
+    return response;
+  }
+
+  return { suppliers, pagination, pager, loading, error, refresh, create, update, remove };
 }
