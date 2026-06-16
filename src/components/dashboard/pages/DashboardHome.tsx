@@ -34,7 +34,6 @@ export function DashboardHome() {
         <Button href="/dashboard/invoices/create"><Plus className="h-4 w-4" /> Create Invoice</Button>
       </div>
       {customerError || invoiceError ? <ComplianceAlert title="Some dashboard data could not load" text={customerError || invoiceError} /> : null}
-      <ComplianceAlert title="Ready for Validation" text="Workspace configured for automated FIRS/NRS compliance reporting." badge="SYSTEM LIVE" tone="primary" action={<Button href="/dashboard/settings" variant="secondary">View Settings</Button>} />
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard label="Customers" value={String(customerPagination?.total ?? customers.length)} meta="API customer records" />
         <MetricCard label="Invoices" value={String(invoicePagination?.total ?? invoices.length)} meta="API sales invoices" />

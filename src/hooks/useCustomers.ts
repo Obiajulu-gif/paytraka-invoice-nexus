@@ -37,5 +37,17 @@ export function useCustomers() {
     return response;
   }
 
-  return { customers, pagination, pager, loading, error, refresh, create, update: customersApi.updateCustomer, remove: customersApi.deleteCustomer, exportCustomers: customersApi.exportCustomers, importCustomers: customersApi.importCustomers };
+  async function update(id: string, data: Partial<CustomerRequest>) {
+    const response = await customersApi.updateCustomer(id, data);
+    await refresh();
+    return response;
+  }
+
+  async function remove(id: string) {
+    const response = await customersApi.deleteCustomer(id);
+    await refresh();
+    return response;
+  }
+
+  return { customers, pagination, pager, loading, error, refresh, create, update, remove, exportCustomers: customersApi.exportCustomers, importCustomers: customersApi.importCustomers };
 }

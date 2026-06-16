@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   Send,
+  Loader2,
   Trash2,
   Upload,
   X,
@@ -77,49 +78,19 @@ export function Card({ children, className = "", ...props }: React.HTMLAttribute
   return <section className={`min-w-0 rounded-2xl border border-[#C5C4DA] bg-white ${className}`} {...props}>{children}</section>;
 }
 
-export function SkeletonBlock({ className = "" }: { className?: string }) {
-  return <span aria-hidden="true" className={`skeleton-shimmer block rounded-lg bg-[#E6EAF2] ${className}`} />;
+export function LoadingSpinner({ label = "Loading", className = "" }: { label?: string; className?: string }) {
+  return (
+    <span className={`inline-flex items-center justify-center gap-2 text-sm font-bold text-[#454557] ${className}`} role="status" aria-live="polite">
+      <Loader2 className="h-5 w-5 animate-spin text-[#1117E8]" aria-hidden="true" />
+      <span>{label}</span>
+    </span>
+  );
 }
 
-export function DashboardPageSkeleton({ title = "Loading dashboard" }: { title?: string }) {
+export function DashboardPageLoader({ title = "Loading dashboard" }: { title?: string }) {
   return (
-    <div className="space-y-6" role="status" aria-label={title}>
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="w-full max-w-xl space-y-3">
-          <SkeletonBlock className="h-4 w-28" />
-          <SkeletonBlock className="h-9 w-3/4 max-w-md" />
-          <SkeletonBlock className="h-4 w-full" />
-        </div>
-        <SkeletonBlock className="h-11 w-44" />
-      </div>
-      <div className="grid gap-5 md:grid-cols-3 xl:grid-cols-4">
-        {[0, 1, 2, 3].map((item) => (
-          <Card key={item} className="p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div className="w-full space-y-4">
-                <SkeletonBlock className="h-4 w-24" />
-                <SkeletonBlock className="h-8 w-32" />
-                <SkeletonBlock className="h-4 w-28" />
-              </div>
-              <SkeletonBlock className="h-11 w-11 rounded-xl" />
-            </div>
-          </Card>
-        ))}
-      </div>
-      <Card className="overflow-hidden">
-        <div className="flex min-h-16 items-center justify-between border-b border-[#C5C4DA] px-5">
-          <SkeletonBlock className="h-5 w-40" />
-          <SkeletonBlock className="h-9 w-24" />
-        </div>
-        <div className="space-y-0">
-          {[0, 1, 2, 3, 4].map((row) => (
-            <div key={row} className="grid grid-cols-3 gap-5 border-b border-[#DCE0E8] px-5 py-5 md:grid-cols-6">
-              {[0, 1, 2, 3, 4, 5].map((cell) => <SkeletonBlock key={cell} className="h-4 w-full" />)}
-            </div>
-          ))}
-        </div>
-      </Card>
-      <span className="sr-only">{title}</span>
+    <div className="grid min-h-[420px] place-items-center">
+      <LoadingSpinner label={title} />
     </div>
   );
 }
@@ -180,12 +151,15 @@ export function ComplianceAlert({ title, text, badge, tone = "danger", action }:
 }
 
 export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 records", actions, footerActions, loading = false }: { title: string; columns: string[]; rows: TableRow[]; footer?: string; actions?: React.ReactNode; footerActions?: React.ReactNode; loading?: boolean }) {
-  const skeletonRows = Array.from({ length: 5 }, (_, rowIndex) => rowIndex);
+  const showSpinnerRow = loading && rows.length === 0;
 
   return (
     <Card className="overflow-hidden">
       <div className="flex min-h-16 items-center justify-between gap-4 border-b border-[#C5C4DA] px-5">
-        <h2 className="text-lg font-bold">{title}</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-bold">{title}</h2>
+          {loading && rows.length > 0 ? <LoadingSpinner label="Refreshing" className="text-xs" /> : null}
+        </div>
         <div className="flex gap-2">{actions ?? <><button type="button" onClick={() => notifyDashboard(`${title} CSV downloaded`)} aria-label={`Download ${title}`} className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Download className="h-4 w-4" /></button><button type="button" onClick={() => notifyDashboard(`${title} print view opened`)} aria-label={`Print ${title}`} className="rounded-lg p-2 hover:bg-[#F1F4F8]"><Printer className="h-4 w-4" /></button></>}</div>
       </div>
       <div className="overflow-x-auto">
@@ -194,15 +168,13 @@ export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 recor
             <tr>{columns.map((column) => <th key={column} scope="col" className="px-5 py-4 font-bold">{column}</th>)}</tr>
           </thead>
           <tbody className="divide-y divide-[#DCE0E8]">
-            {loading ? skeletonRows.map((row) => (
-              <tr key={row} className="bg-white">
-                {columns.map((column, index) => (
-                  <td key={column} className="px-5 py-5 align-middle text-sm">
-                    <SkeletonBlock className={`h-4 ${index === columns.length - 1 ? "w-24" : index % 3 === 0 ? "w-32" : "w-full"}`} />
-                  </td>
-                ))}
+            {showSpinnerRow ? (
+              <tr className="bg-white">
+                <td colSpan={columns.length} className="px-5 py-10 text-center">
+                  <LoadingSpinner label={`Loading ${title.toLowerCase()}`} />
+                </td>
               </tr>
-            )) : rows.map((row, index) => <tr key={index} className="bg-white">{columns.map((column) => <td key={column} className="px-5 py-5 align-middle text-sm">{row[column]}</td>)}</tr>)}
+            ) : rows.map((row, index) => <tr key={index} className="bg-white">{columns.map((column) => <td key={column} className="px-5 py-5 align-middle text-sm">{row[column]}</td>)}</tr>)}
           </tbody>
         </table>
       </div>
@@ -240,6 +212,7 @@ function RowActions({ extra, label, actions = [] }: { extra?: React.ReactNode; l
     tone: action === "Delete" ? "danger" : "default",
     onSelect: () => notifyDashboard(`${action} selected for ${label}`),
   }));
+  const viewAction = menuItems.find((item) => item.label.toLowerCase().startsWith("view"));
 
   const positionMenu = useCallback(() => {
     const rect = buttonRef.current?.getBoundingClientRect();
@@ -277,7 +250,7 @@ function RowActions({ extra, label, actions = [] }: { extra?: React.ReactNode; l
   return (
     <div className="flex items-center gap-2">
       {extra}
-      <button type="button" onClick={() => notifyDashboard(`Opened ${label} details`)} aria-label={`View ${label}`} className="rounded-lg p-2 text-[#454557] transition hover:bg-[#F1F4F8] hover:text-[#0001B1]">
+      <button type="button" onClick={() => viewAction?.onSelect() ?? notifyDashboard(`Opened ${label} details`)} aria-label={`View ${label}`} className="rounded-lg p-2 text-[#454557] transition hover:bg-[#F1F4F8] hover:text-[#0001B1]">
         <Eye className="h-4 w-4" />
       </button>
       <button
@@ -351,7 +324,7 @@ export function CheckLine({ label }: { label: string }) {
   return <label className="mt-4 flex items-center gap-3 text-sm font-semibold"><input type="checkbox" defaultChecked className="h-4 w-4 accent-[#1117E8]" /> {label}</label>;
 }
 
-export function DashboardFormModal({ open, title, description, fields, onClose, submitLabel = "Save", onSubmit, successMessage }: { open: boolean; title: string; description: string; fields: string[]; onClose: () => void; submitLabel?: string; onSubmit?: (values?: Record<string, string>) => void | Promise<void>; successMessage?: string }) {
+export function DashboardFormModal({ open, title, description, fields, initialValues = {}, onClose, submitLabel = "Save", onSubmit, successMessage }: { open: boolean; title: string; description: string; fields: string[]; initialValues?: Record<string, string>; onClose: () => void; submitLabel?: string; onSubmit?: (values?: Record<string, string>) => void | Promise<void>; successMessage?: string }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -393,7 +366,7 @@ export function DashboardFormModal({ open, title, description, fields, onClose, 
         </div>
         <div className="max-h-[62vh] overflow-y-auto p-6">
           <div className="grid gap-4 md:grid-cols-2">
-            {fields.map((field) => <FieldControl key={field} field={field} />)}
+            {fields.map((field) => <FieldControl key={field} field={field} value={initialValues[field] ?? ""} />)}
           </div>
         </div>
         <div className="flex flex-col gap-3 border-t border-[#C5C4DA] bg-white p-6 sm:flex-row sm:justify-end">
@@ -406,13 +379,13 @@ export function DashboardFormModal({ open, title, description, fields, onClose, 
   );
 }
 
-function FieldControl({ field }: { field: string }) {
+function FieldControl({ field, value = "" }: { field: string; value?: string }) {
   if (field.toLowerCase().includes("upload")) {
     return <div className="md:col-span-2 rounded-xl border border-dashed border-[#C5C4DA] bg-[#F7F9FB] p-8 text-center"><Upload className="mx-auto h-8 w-8 text-[#757588]" /><p className="mt-3 font-bold">Click to upload or drag and drop</p><p className="mt-1 text-sm text-[#757588]">TIN certificate, contract, or KYC documents (PDF, JPG up to 10MB)</p></div>;
   }
   if (field.startsWith("Automatically") || field.startsWith("Attach")) return <CheckLine label={field} />;
   if (field === "VAT Registered") return <label className="flex items-center justify-between gap-3 rounded-xl bg-[#F1F4F8] p-4 text-sm font-bold text-[#454557] md:col-span-2">VAT Registered <input name={field} type="checkbox" defaultChecked className="h-5 w-5 shrink-0 accent-[#1117E8]" /></label>;
-  return <Input name={field} label={field} wide={field.includes("Address") || field.includes("Message") || field.includes("Notes")} />;
+  return <Input name={field} label={field} value={value} wide={field.includes("Address") || field.includes("Message") || field.includes("Notes")} />;
 }
 
 export function FormShell({ title, sideTitle, sections, buttons }: { title: string; sideTitle: string; sections: [string, string[]][]; buttons: string[] }) {

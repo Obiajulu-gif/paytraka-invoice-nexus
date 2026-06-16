@@ -42,11 +42,23 @@ export function useProducts() {
     return response;
   }
 
+  async function update(id: string, data: Partial<ProductRequest>) {
+    const response = await productsApi.updateProduct(id, data);
+    await refresh();
+    return response;
+  }
+
+  async function remove(id: string) {
+    const response = await productsApi.deleteProduct(id);
+    await refresh();
+    return response;
+  }
+
   async function createCategory(data: ProductCategoryRequest) {
     const response = await productsApi.createCategory(data);
     await refresh();
     return response;
   }
 
-  return { products, categories, pagination, pager, loading, error, refresh, create, createCategory, update: productsApi.updateProduct, remove: productsApi.deleteProduct };
+  return { products, categories, pagination, pager, loading, error, refresh, create, createCategory, update, remove };
 }
