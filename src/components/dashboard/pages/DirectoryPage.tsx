@@ -1,13 +1,13 @@
 "use client";
 
-import { AlertTriangle, Download, Edit3, Eye, Filter, Plus, ShieldCheck, Trash2, Truck, Users, X } from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, Building2, Download, Edit3, Eye, Mail, MapPin, Phone, Plus, ShieldCheck, Trash2, Truck, UserRound, Users, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Pagination } from "@/components/ui/Pagination";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { Customer, CustomerRequest, Supplier, SupplierRequest } from "@/types/api";
-import { Button, Card, ComplianceAlert, DashboardFormModal, DataTable, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
+import { Button, Card, ComplianceAlert, DashboardFormModal, DataTable, FilterBar, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 const customerFields = ["Customer type", "Customer name", "Email", "Primary phone", "Secondary phone", "Billing address", "City", "State", "Country", "Postal code", "Tax ID/TIN", "RC Number"];
 const supplierFields = ["Supplier type", "Supplier name", "Contact person", "Email", "Phone", "Tax ID/TIN", "RC Number", "Address", "City", "State", "Country", "Payment terms"];
@@ -92,8 +92,11 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
-  const [viewingRecord, setViewingRecord] = useState<{ title: string; values: Record<string, string> } | null>(null);
-  const [activeTab, setActiveTab] = useState(isCustomers ? "All Customers" : "All Suppliers");
+  const [viewingCustomer, setViewingCustomer] = useState<Customer | null>(null);
+  const [viewingSupplier, setViewingSupplier] = useState<Supplier | null>(null);
+  const [recordType, setRecordType] = useState("");
+  const [tinStatus, setTinStatus] = useState("");
+  const [country, setCountry] = useState("");
 
   async function exportCustomers() {
     if (!isCustomers) return;
@@ -162,6 +165,24 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
   const missingTin = isCustomers
     ? customersState.customers.filter((customer) => !customer.tax_identification_number).length
     : suppliersState.suppliers.filter((supplier) => !supplier.tax_identification_number).length;
+  const countries = useMemo(() => {
+    const records = isCustomers ? customersState.customers : suppliersState.suppliers;
+    return [...new Set(records.map((record) => record.country).filter((value): value is string => Boolean(value)))].sort();
+  }, [customersState.customers, isCustomers, suppliersState.suppliers]);
+  const filteredCustomers = customersState.customers.filter((customer) => {
+    if (recordType && customer.customer_type !== recordType) return false;
+    if (tinStatus === "verified" && !customer.tax_identification_number) return false;
+    if (tinStatus === "missing" && customer.tax_identification_number) return false;
+    if (country && customer.country !== country) return false;
+    return true;
+  });
+  const filteredSuppliers = suppliersState.suppliers.filter((supplier) => {
+    if (recordType && supplier.supplier_type !== recordType) return false;
+    if (tinStatus === "verified" && !supplier.tax_identification_number) return false;
+    if (tinStatus === "missing" && supplier.tax_identification_number) return false;
+    if (country && supplier.country !== country) return false;
+    return true;
+  });
 
   return (
     <>
@@ -195,23 +216,25 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
         <MetricCard label={isCustomers ? "Compliance Risk" : "Pending Verification"} value={String(missingTin)} meta={isCustomers ? "Customers missing valid TIN" : "Suppliers missing valid TIN"} tone="danger" icon={AlertTriangle} />
         <MetricCard label={isCustomers ? "Compliance Score" : "Spend Integrity"} value={missingTin === 0 ? "100%" : "Review"} meta="Calculated from loaded records" tone="primary" icon={ShieldCheck} />
       </div>
-      <Card className="mb-6 p-4">
-        <div className="flex min-w-0 flex-wrap gap-3">
-          {(isCustomers ? ["All Customers", "Missing TIN", "Active", "Recent"] : ["All Suppliers", "Missing TIN", "Verified", "Recent"]).map((tab) => (
-            <button key={tab} type="button" onClick={() => { setActiveTab(tab); notifyDashboard(`${tab} filter applied`); }} className={`rounded-full px-4 py-2 text-sm font-bold ${activeTab === tab ? "bg-[#DADEFD] text-[#0001B1]" : "text-[#454557]"}`}>
-              {tab}
-            </button>
-          ))}
-          <input aria-label={`Search ${isCustomers ? "customers" : "suppliers"}`} value={state.pager.search} onChange={(event) => state.pager.setSearch(event.target.value)} placeholder="Search records" className="min-h-10 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" />
-          <Button variant="secondary" className="w-full sm:ml-auto sm:w-auto" onClick={() => notifyDashboard("Advanced filters opened")}><Filter className="h-4 w-4" /> Advanced Filter</Button>
-          {isCustomers ? <Button variant="secondary" className="w-full sm:w-auto" onClick={exportCustomers}><Download className="h-4 w-4" /> Export CSV</Button> : null}
-        </div>
-      </Card>
+      <div className="mb-6 grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto]">
+        <FilterBar
+          search={state.pager.search}
+          onSearchChange={state.pager.setSearch}
+          searchPlaceholder={`Search ${isCustomers ? "customers" : "suppliers"}`}
+          selects={[
+            { key: "type", label: "Record type", value: recordType, onChange: setRecordType, options: [{ label: "Business", value: "business" }, { label: "Individual", value: "individual" }] },
+            { key: "tin", label: "TIN status", value: tinStatus, onChange: setTinStatus, options: [{ label: "Verified", value: "verified" }, { label: "Missing", value: "missing" }] },
+            { key: "country", label: "Country", value: country, onChange: setCountry, options: countries.map((value) => ({ label: value, value })) },
+          ]}
+          onClear={() => { state.pager.setSearch(""); setRecordType(""); setTinStatus(""); setCountry(""); }}
+        />
+        {isCustomers ? <Button variant="secondary" className="h-fit xl:mt-[26px]" onClick={exportCustomers}><Download className="h-4 w-4" /> Export CSV</Button> : null}
+      </div>
       {state.error ? <ComplianceAlert title="Unable to load records" text={state.error} /> : null}
       <DataTable
         title={isCustomers ? "Customer Records" : "Supplier Records"}
         columns={isCustomers ? ["Customer Name", "Type", "TIN", "RC Number", "Contact", "Location", "Actions"] : ["Supplier Name", "Type", "Contact Person", "TIN", "Payment Terms", "Location", "Actions"]}
-        rows={isCustomers ? customersState.customers.map((customer) => ({
+        rows={isCustomers ? filteredCustomers.map((customer) => ({
           "Customer Name": <b>{customer.name}</b>,
           Type: <StatusBadge>{customer.customer_type}</StatusBadge>,
           TIN: customer.tax_identification_number ?? "Missing",
@@ -219,11 +242,11 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
           Contact: <span className="whitespace-pre-line">{[customer.email, customer.phone1, customer.phone2].filter(Boolean).join("\n") || "-"}</span>,
           Location: [customer.city, customer.state, customer.country].filter(Boolean).join(", ") || "-",
           Actions: rowActions(undefined, customer.name, [
-            { label: "View customer", icon: Eye, onSelect: () => setViewingRecord({ title: customer.name, values: customerToValues(customer) }) },
+            { label: "View customer", icon: Eye, onSelect: () => setViewingCustomer(customer) },
             { label: "Edit customer", icon: Edit3, onSelect: () => setEditingCustomer(customer) },
             { label: "Delete customer", icon: Trash2, tone: "danger", onSelect: () => void deleteCustomer(customer) },
           ]),
-        })) : suppliersState.suppliers.map((supplier) => ({
+        })) : filteredSuppliers.map((supplier) => ({
           "Supplier Name": <b>{supplier.supplier_name}</b>,
           Type: <StatusBadge>{supplier.supplier_type}</StatusBadge>,
           "Contact Person": supplier.contact_person ?? "-",
@@ -231,40 +254,93 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
           "Payment Terms": supplier.payment_terms ?? "-",
           Location: [supplier.city, supplier.state, supplier.country].filter(Boolean).join(", ") || "-",
           Actions: rowActions(undefined, supplier.supplier_name, [
-            { label: "View supplier", icon: Eye, onSelect: () => setViewingRecord({ title: supplier.supplier_name, values: supplierToValues(supplier) }) },
+            { label: "View supplier", icon: Eye, onSelect: () => setViewingSupplier(supplier) },
             { label: "Edit supplier", icon: Edit3, onSelect: () => setEditingSupplier(supplier) },
             { label: "Delete supplier", icon: Trash2, tone: "danger", onSelect: () => void deleteSupplier(supplier) },
           ]),
         }))}
-        footer={state.loading ? "Loading API records..." : `Showing ${visibleCount} of ${total} ${isCustomers ? "customers" : "suppliers"}`}
+        footer={state.loading ? "Loading API records..." : `Showing ${isCustomers ? filteredCustomers.length : filteredSuppliers.length} filtered records from ${total} ${isCustomers ? "customers" : "suppliers"}`}
         footerActions={<Pagination pagination={state.pagination} onPageChange={state.pager.setPage} />}
         loading={state.loading}
       />
-      {viewingRecord ? <RecordDetailsModal record={viewingRecord} onClose={() => setViewingRecord(null)} /> : null}
+      {viewingCustomer ? <DirectoryDetailsModal customer={viewingCustomer} onClose={() => setViewingCustomer(null)} /> : null}
+      {viewingSupplier ? <DirectoryDetailsModal supplier={viewingSupplier} onClose={() => setViewingSupplier(null)} /> : null}
     </>
   );
 }
 
-function RecordDetailsModal({ record, onClose }: { record: { title: string; values: Record<string, string> }; onClose: () => void }) {
+function DirectoryDetailsModal({ customer, supplier, onClose }: { customer?: Customer; supplier?: Supplier; onClose: () => void }) {
+  const isCustomer = Boolean(customer);
+  const title = customer?.name ?? supplier?.supplier_name ?? "Directory record";
+  const type = customer?.customer_type ?? supplier?.supplier_type ?? "record";
+  const tin = customer?.tax_identification_number ?? supplier?.tax_identification_number;
+  const rcNumber = customer?.rc_number ?? supplier?.rc_number;
+  const email = customer?.email ?? supplier?.email;
+  const phone = customer?.phone1 ?? supplier?.phone;
+  const secondaryPhone = customer?.phone2;
+  const contactPerson = supplier?.contact_person;
+  const address = customer?.billing_address ?? supplier?.address;
+  const city = customer?.city ?? supplier?.city;
+  const state = customer?.state ?? supplier?.state;
+  const country = customer?.country ?? supplier?.country;
+  const postalCode = customer?.postal_code;
   return (
     <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-[#191C1E]/45 p-3 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="record-details-title" onMouseDown={onClose}>
-      <Card className="w-full max-w-2xl overflow-hidden shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-6">
-          <div>
-            <h2 id="record-details-title" className="text-2xl font-bold">{record.title}</h2>
-            <p className="mt-1 text-sm text-[#454557]">Directory record details</p>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close record details" className="rounded-lg p-2 text-[#454557] hover:bg-white"><X className="h-5 w-5" /></button>
-        </div>
-        <div className="grid gap-4 p-6 sm:grid-cols-2">
-          {Object.entries(record.values).map(([label, value]) => (
-            <div key={label} className="rounded-xl bg-[#F1F4F8] p-4">
-              <p className="text-xs font-bold uppercase text-[#757588]">{label}</p>
-              <p className="mt-1 break-words font-bold">{value || "-"}</p>
+      <Card className="relative w-full max-w-4xl overflow-hidden shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="bg-[#075CB6] px-6 py-7 text-white sm:px-10">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">{isCustomer ? "Customer profile" : "Supplier profile"}</p>
+              <h2 id="record-details-title" className="mt-2 text-3xl font-black">{title}</h2>
+              <div className="mt-3 flex flex-wrap gap-2"><StatusBadge tone="primary">{type}</StatusBadge><StatusBadge tone={tin ? "success" : "danger"}>{tin ? "TIN verified" : "TIN missing"}</StatusBadge></div>
             </div>
-          ))}
+            <button type="button" onClick={onClose} aria-label="Close record details" className="rounded-lg p-2 text-white hover:bg-white/10"><X className="h-5 w-5" /></button>
+          </div>
+        </div>
+        <div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-2">
+          <DetailSection title="Identity & compliance" icon={isCustomer ? UserRound : Building2}>
+            <DetailLine label="Registered name" value={title} />
+            {contactPerson ? <DetailLine label="Contact person" value={contactPerson} /> : null}
+            <DetailLine label="Tax ID / TIN" value={tin} warning={!tin} />
+            <DetailLine label="RC number" value={rcNumber} />
+            {supplier?.payment_terms ? <DetailLine label="Payment terms" value={supplier.payment_terms} /> : null}
+          </DetailSection>
+          <DetailSection title="Contact information" icon={Mail}>
+            <DetailLine label="Email" value={email} />
+            <DetailLine label="Phone" value={phone} />
+            {secondaryPhone ? <DetailLine label="Secondary phone" value={secondaryPhone} /> : null}
+          </DetailSection>
+          <div className="lg:col-span-2">
+            <DetailSection title="Address" icon={MapPin}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <DetailLine label="Street address" value={address} />
+                <DetailLine label="Location" value={[city, state, postalCode, country].filter(Boolean).join(", ")} />
+              </div>
+            </DetailSection>
+          </div>
+        </div>
+        <div className="h-3 bg-[#E9E5DF]">
+          <div className="h-full w-2/3 bg-[#075CB6]" />
         </div>
       </Card>
+    </div>
+  );
+}
+
+function DetailSection({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
+  return (
+    <section>
+      <h3 className="flex items-center gap-2 border-b-2 border-[#075CB6] pb-3 text-sm font-black uppercase tracking-wide text-[#081936]"><Icon className="h-4 w-4 text-[#075CB6]" />{title}</h3>
+      <div className="mt-4 space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function DetailLine({ label, value, warning = false }: { label: string; value?: string; warning?: boolean }) {
+  return (
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-[#757588]">{label}</p>
+      <p className={`mt-1 break-words font-semibold ${warning ? "text-red-700" : "text-[#191C1E]"}`}>{value || "Not provided"}</p>
     </div>
   );
 }

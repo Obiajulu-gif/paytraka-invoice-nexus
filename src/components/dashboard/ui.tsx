@@ -174,6 +174,12 @@ export function DataTable({ title, columns, rows, footer = "Showing 1 to 4 recor
                   <LoadingSpinner label={`Loading ${title.toLowerCase()}`} />
                 </td>
               </tr>
+            ) : rows.length === 0 ? (
+              <tr className="bg-white">
+                <td colSpan={columns.length} className="px-5 py-12 text-center text-sm font-semibold text-[#757588]">
+                  No records match the current filters.
+                </td>
+              </tr>
             ) : rows.map((row, index) => <tr key={index} className="bg-white">{columns.map((column) => <td key={column} className="px-5 py-5 align-middle text-sm">{row[column]}</td>)}</tr>)}
           </tbody>
         </table>
@@ -292,8 +298,56 @@ export function rowActions(extra?: React.ReactNode, label = "record", actions?: 
   return <RowActions extra={extra} label={label} actions={actions} />;
 }
 
-export function FilterBar({ labels = ["Date range", "Payment status", "FIRS status", "More filters"] }: { labels?: string[] }) {
-  return <Card className="mb-6 flex min-w-0 flex-wrap items-center gap-3 p-4"><Filter className="h-5 w-5 shrink-0" /><span className="font-bold">Filters:</span>{labels.map((label) => <button key={label} type="button" onClick={() => notifyDashboard(`${label} filter selected`)} className="min-w-0 rounded-lg border border-[#C5C4DA] bg-white px-4 py-2 text-sm font-semibold text-[#454557]">{label}</button>)}<button type="button" onClick={() => notifyDashboard("Filters cleared")} className="w-full text-left font-bold text-[#0001B1] sm:ml-auto sm:w-auto">Clear all</button></Card>;
+export type DashboardFilterOption = {
+  label: string;
+  value: string;
+};
+
+export type DashboardFilterSelect = {
+  key: string;
+  label: string;
+  value: string;
+  options: DashboardFilterOption[];
+  onChange: (value: string) => void;
+};
+
+export function FilterBar({
+  search,
+  onSearchChange,
+  searchPlaceholder = "Search records",
+  selects = [],
+  onClear,
+  className = "",
+}: {
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
+  selects?: DashboardFilterSelect[];
+  onClear?: () => void;
+  className?: string;
+}) {
+  const hasActiveFilters = Boolean(search?.trim()) || selects.some((select) => Boolean(select.value));
+  return (
+    <Card className={`flex min-w-0 flex-wrap items-end gap-3 p-4 ${className}`}>
+      <div className="flex h-10 items-center gap-2 font-bold"><Filter className="h-5 w-5 shrink-0" /><span>Filters</span></div>
+      {onSearchChange ? (
+        <label className="min-w-[210px] flex-1 text-xs font-bold uppercase text-[#757588]">
+          Search
+          <input aria-label={searchPlaceholder} value={search ?? ""} onChange={(event) => onSearchChange(event.target.value)} placeholder={searchPlaceholder} className="mt-1 h-10 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm font-normal normal-case text-[#191C1E] outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]" />
+        </label>
+      ) : null}
+      {selects.map((select) => (
+        <label key={select.key} className="min-w-[150px] text-xs font-bold uppercase text-[#757588]">
+          {select.label}
+          <select aria-label={select.label} value={select.value} onChange={(event) => select.onChange(event.target.value)} className="mt-1 h-10 w-full rounded-lg border border-[#C5C4DA] bg-white px-3 text-sm font-semibold normal-case text-[#454557] outline-none focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]">
+            <option value="">All</option>
+            {select.options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+        </label>
+      ))}
+      <button type="button" onClick={onClear} disabled={!hasActiveFilters} className="h-10 px-2 font-bold text-[#0001B1] disabled:cursor-not-allowed disabled:opacity-40">Clear all</button>
+    </Card>
+  );
 }
 
 export function BottomInsight({ title, asideTitle }: { title: string; asideTitle: string }) {

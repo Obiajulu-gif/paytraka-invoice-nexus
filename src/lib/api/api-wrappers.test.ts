@@ -5,6 +5,7 @@ import * as customersApi from "./customers";
 import * as firsApi from "./firs";
 import * as invoicesApi from "./invoices";
 import * as productsApi from "./products";
+import * as purchaseInvoicesApi from "./purchase-invoices";
 import * as receiptsApi from "./receipts";
 import * as suppliersApi from "./suppliers";
 
@@ -346,6 +347,33 @@ describe("invoices API wrapper", () => {
     expect(clientMocks.apiClient.get).toHaveBeenNthCalledWith(2, "/sales-invoices/invoice-1");
     expect(clientMocks.apiClient.post).toHaveBeenNthCalledWith(2, "/sales-invoices/invoice-1/post");
     expect(clientMocks.apiClient.patch).toHaveBeenCalledWith("/sales-invoices/invoice-1", { notes: "Updated" });
+  });
+});
+
+describe("purchase invoices API wrapper", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("covers purchase invoice CRUD against the registered purchase endpoint", async () => {
+    const invoice = { id: "purchase-1", public_id: "PI-1", invoice_number: "PUR-1", supplier_id: "supplier-1", invoice_type: "purchase_invoice", issue_date: "2026-06-14", due_date: "2026-06-30", currency: "NGN", line_items: [] };
+    const payload = { supplier_id: "supplier-1", invoice_type: "purchase_invoice", issue_date: "2026-06-14", due_date: "2026-06-30", line_items: [] };
+    clientMocks.apiClient.post.mockResolvedValue(axiosResponse(apiResponse(invoice)));
+    clientMocks.apiClient.get
+      .mockResolvedValueOnce(axiosResponse({ ...apiResponse([invoice]), pagination: { total: 1, page: 1, limit: 20, totalPages: 1 } }))
+      .mockResolvedValueOnce(axiosResponse(apiResponse(invoice)));
+    clientMocks.apiClient.patch.mockResolvedValue(axiosResponse(apiResponse(invoice)));
+    clientMocks.apiClient.delete.mockResolvedValue(axiosResponse(apiResponse(null)));
+
+    await purchaseInvoicesApi.createPurchaseInvoice(payload);
+    await purchaseInvoicesApi.listPurchaseInvoices({ page: 1, limit: 20 });
+    await purchaseInvoicesApi.getPurchaseInvoice("purchase-1");
+    await purchaseInvoicesApi.updatePurchaseInvoice("purchase-1", { notes: "Updated" });
+    await purchaseInvoicesApi.deletePurchaseInvoice("purchase-1");
+
+    expect(clientMocks.apiClient.post).toHaveBeenCalledWith("/purchase-invoices", payload);
+    expect(clientMocks.apiClient.get).toHaveBeenNthCalledWith(1, "/purchase-invoices", { params: { page: 1, limit: 20 } });
+    expect(clientMocks.apiClient.get).toHaveBeenNthCalledWith(2, "/purchase-invoices/purchase-1");
+    expect(clientMocks.apiClient.patch).toHaveBeenCalledWith("/purchase-invoices/purchase-1", { notes: "Updated" });
+    expect(clientMocks.apiClient.delete).toHaveBeenCalledWith("/purchase-invoices/purchase-1");
   });
 });
 

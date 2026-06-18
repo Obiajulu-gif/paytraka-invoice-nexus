@@ -1,13 +1,13 @@
 "use client";
 
-import { Edit3, Eye, Plus, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { Boxes, CircleDollarSign, Edit3, Eye, FileText, PackageCheck, Plus, Tag, Trash2, X } from "lucide-react";
+import { useMemo, useState } from "react";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { Pagination } from "@/components/ui/Pagination";
 import { useProducts } from "@/hooks/useProducts";
 import { getApiErrorMessage } from "@/lib/api/client";
 import { Product, ProductCategory, ProductRequest } from "@/types/api";
-import { BottomInsight, Button, Card, ComplianceAlert, DashboardFormModal, DataTable, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
+import { BottomInsight, Button, Card, ComplianceAlert, DashboardFormModal, DataTable, FilterBar, MetricCard, notifyDashboard, PageHeader, StatusBadge, rowActions } from "../ui";
 
 const productFields = ["Name", "SKU", "Description", "Product type", "Unit price", "Cost price", "Tax/VAT rate", "Currency", "Stock quantity", "Track inventory", "Status", "Category"];
 
@@ -61,13 +61,16 @@ export function ProductsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
-  const [activeTab, setActiveTab] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
   const filteredProducts = products.filter((product) => {
-    if (activeTab === "Products") return product.product_type === "product";
-    if (activeTab === "Services") return product.product_type === "service";
+    if (typeFilter && product.product_type !== typeFilter) return false;
+    if (statusFilter && product.status !== statusFilter) return false;
+    if (categoryFilter && product.category_id !== categoryFilter) return false;
     return true;
   });
-  const categoryById = new Map(categories.map((category) => [category.id, category.name]));
+  const categoryById = useMemo(() => new Map(categories.map((category) => [category.id, category.name])), [categories]);
   const inactiveCount = products.filter((product) => product.status === "inactive").length;
 
   async function createCatalogItem(values?: Record<string, string>) {
@@ -126,12 +129,18 @@ export function ProductsPage() {
         <MetricCard label="Active Services" value={String(products.filter((product) => product.product_type === "service" && product.status === "active").length)} meta="Loaded service records" />
         <MetricCard label="Compliance Alerts" value={String(inactiveCount)} meta="Inactive catalog items" tone="danger" />
       </div>
-      <Card className="mb-6 p-4">
-        <div className="flex flex-wrap gap-3">
-          {["All", "Products", "Services"].map((tab) => <button key={tab} type="button" onClick={() => { setActiveTab(tab); notifyDashboard(`${tab} catalog filter applied`); }} className={`rounded-full px-4 py-2 text-sm font-bold ${activeTab === tab ? "bg-[#DADEFD] text-[#0001B1]" : "text-[#454557]"}`}>{tab}</button>)}
-          <input aria-label="Search products" value={pager.search} onChange={(event) => pager.setSearch(event.target.value)} placeholder="Search products" className="min-h-10 rounded-lg border border-[#C5C4DA] px-3 text-sm outline-none focus:border-[#1117E8]" />
-        </div>
-      </Card>
+      <FilterBar
+        className="mb-6"
+        search={pager.search}
+        onSearchChange={pager.setSearch}
+        searchPlaceholder="Search products, services, or SKU"
+        selects={[
+          { key: "type", label: "Item type", value: typeFilter, onChange: setTypeFilter, options: [{ label: "Products", value: "product" }, { label: "Services", value: "service" }] },
+          { key: "status", label: "Status", value: statusFilter, onChange: setStatusFilter, options: [{ label: "Active", value: "active" }, { label: "Inactive", value: "inactive" }] },
+          { key: "category", label: "Category", value: categoryFilter, onChange: setCategoryFilter, options: categories.map((category) => ({ label: category.name, value: category.id })) },
+        ]}
+        onClear={() => { pager.setSearch(""); setTypeFilter(""); setStatusFilter(""); setCategoryFilter(""); }}
+      />
       {error ? <ComplianceAlert title="Unable to load products" text={error} /> : null}
       <DataTable
         title="Inventory List"
@@ -152,7 +161,7 @@ export function ProductsPage() {
             { label: "Delete item", icon: Trash2, tone: "danger", onSelect: () => void deleteCatalogItem(product) },
           ]),
         }))}
-        footer={loading ? "Loading API records..." : `Showing ${filteredProducts.length} of ${pagination?.total ?? products.length} items`}
+        footer={loading ? "Loading API records..." : `Showing ${filteredProducts.length} filtered items from ${pagination?.total ?? products.length} catalog records`}
         footerActions={<Pagination pagination={pagination} onPageChange={pager.setPage} />}
         loading={loading}
       />
@@ -163,26 +172,70 @@ export function ProductsPage() {
 }
 
 function ProductDetailsModal({ product, categories, onClose }: { product: Product; categories: ProductCategory[]; onClose: () => void }) {
-  const values = productToValues(product, categories);
+  const category = product.category_id ? categories.find((item) => item.id === product.category_id)?.name ?? product.category_id : "Uncategorized";
   return (
     <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-[#191C1E]/45 p-3 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="product-details-title" onMouseDown={onClose}>
-      <Card className="w-full max-w-2xl overflow-hidden shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
-        <div className="flex items-start justify-between gap-4 border-b border-[#C5C4DA] bg-[#F7F9FB] p-6">
-          <div>
-            <h2 id="product-details-title" className="text-2xl font-bold">{product.name}</h2>
-            <p className="mt-1 text-sm text-[#454557]">Catalog item details</p>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Close product details" className="rounded-lg p-2 text-[#454557] hover:bg-white"><X className="h-5 w-5" /></button>
-        </div>
-        <div className="grid gap-4 p-6 sm:grid-cols-2">
-          {Object.entries(values).map(([label, value]) => (
-            <div key={label} className="rounded-xl bg-[#F1F4F8] p-4">
-              <p className="text-xs font-bold uppercase text-[#757588]">{label}</p>
-              <p className="mt-1 break-words font-bold">{value || "-"}</p>
+      <Card className="w-full max-w-4xl overflow-hidden shadow-2xl" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="bg-[#075CB6] px-6 py-7 text-white sm:px-10">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/70">Catalog profile</p>
+              <h2 id="product-details-title" className="mt-2 text-3xl font-black">{product.name}</h2>
+              <div className="mt-3 flex flex-wrap gap-2"><StatusBadge tone="primary">{product.product_type}</StatusBadge><StatusBadge tone={product.status === "active" ? "success" : "danger"}>{product.status}</StatusBadge></div>
             </div>
-          ))}
+            <button type="button" onClick={onClose} aria-label="Close product details" className="rounded-lg p-2 text-white hover:bg-white/10"><X className="h-5 w-5" /></button>
+          </div>
+        </div>
+        <div className="p-6 sm:p-10">
+          <div className="grid gap-5 sm:grid-cols-3">
+            <ProductMetric icon={CircleDollarSign} label="Unit price" value={<CurrencyAmount amount={product.unit_price} currency={product.currency} />} />
+            <ProductMetric icon={Tag} label="VAT rate" value={product.tax_rate == null ? "Not configured" : `${product.tax_rate}%`} />
+            <ProductMetric icon={PackageCheck} label="Stock" value={product.track_inventory ? String(product.stock_quantity ?? 0) : "Not tracked"} />
+          </div>
+          <div className="mt-8 grid gap-8 lg:grid-cols-2">
+            <ProductSection icon={Boxes} title="Item information">
+              <ProductLine label="SKU" value={product.sku} />
+              <ProductLine label="Category" value={category} />
+              <ProductLine label="Currency" value={product.currency} />
+              <ProductLine label="Cost price" value={<CurrencyAmount amount={product.cost_price ?? 0} currency={product.currency} />} />
+            </ProductSection>
+            <ProductSection icon={FileText} title="Description">
+              <p className="whitespace-pre-wrap leading-7 text-[#454557]">{product.description || "No description provided."}</p>
+            </ProductSection>
+          </div>
+        </div>
+        <div className="h-3 bg-[#E9E5DF]">
+          <div className="h-full w-2/3 bg-[#075CB6]" />
         </div>
       </Card>
+    </div>
+  );
+}
+
+function ProductMetric({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-xl bg-[#F1F4F8] p-5">
+      <Icon className="h-5 w-5 text-[#075CB6]" />
+      <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-[#757588]">{label}</p>
+      <p className="mt-1 text-lg font-black text-[#081936]">{value}</p>
+    </div>
+  );
+}
+
+function ProductSection({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h3 className="flex items-center gap-2 border-b-2 border-[#075CB6] pb-3 text-sm font-black uppercase tracking-wide"><Icon className="h-4 w-4 text-[#075CB6]" />{title}</h3>
+      <div className="mt-4 space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function ProductLine({ label, value }: { label: string; value?: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-[#757588]">{label}</p>
+      <div className="mt-1 break-words font-semibold text-[#191C1E]">{value || "Not provided"}</div>
     </div>
   );
 }

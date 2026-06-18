@@ -16,12 +16,17 @@ export function useCompany(companyId?: string) {
     setLoading(true);
     setError("");
     try {
-      const [companyResponse, modeResponse] = await Promise.all([
-        companyApi.getCompany(companyId),
-        companyApi.getCompanyMode(companyId),
-      ]);
+      const companyResponse = await companyApi.getCompany(companyId);
       setCompany(companyResponse.data);
-      setMode(modeResponse.data);
+      try {
+        const modeResponse = await companyApi.getCompanyMode(companyId);
+        setMode(modeResponse.data);
+      } catch {
+        setMode({
+          mode: companyResponse.data.mode,
+          firs_enabled: companyResponse.data.firs_enabled,
+        });
+      }
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Unable to load company"));
     } finally {

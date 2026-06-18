@@ -11,6 +11,18 @@ export async function listInvoices(params: PaginatedQuery) {
   return response.data;
 }
 
+export async function listAllInvoices() {
+  const limit = 100;
+  const first = await listInvoices({ page: 1, limit });
+  const invoices = [...first.data];
+  const totalPages = first.pagination?.totalPages ?? 1;
+  for (let page = 2; page <= totalPages; page += 1) {
+    const response = await listInvoices({ page, limit });
+    invoices.push(...response.data);
+  }
+  return invoices;
+}
+
 export async function getInvoice(id: string) {
   const response = await apiClient.get<ApiResponse<SalesInvoice>>(`/sales-invoices/${id}`);
   return response.data;
