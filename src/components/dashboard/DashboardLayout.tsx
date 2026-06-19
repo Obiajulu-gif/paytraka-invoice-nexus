@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { getOnboardingState } from "@/lib/onboarding-store";
 import { useAuth } from "@/hooks/useAuth";
 import { Sidebar } from "./Sidebar";
-import { DashboardPageSkeleton, notifyDashboard, SkeletonBlock, StatusBadge, Toast, useDashboardToasts } from "./ui";
+import { DashboardPageLoader, LoadingSpinner, notifyDashboard, StatusBadge, Toast, useDashboardToasts } from "./ui";
 
 function useDashboardGuard() {
   const router = useRouter();
@@ -115,26 +115,17 @@ function useDashboardRouteLoading() {
   return { routeLoading, handleClickCapture };
 }
 
-function DashboardShellSkeleton() {
+function DashboardShellLoader() {
   return (
     <div className="dashboard-theme min-h-screen overflow-x-hidden bg-[#F7F9FB] text-[#191C1E]">
-      <div className="hidden border-r border-[#C5C4DA] bg-white p-5 lg:fixed lg:inset-y-0 lg:flex lg:w-[272px] lg:flex-col">
-        <SkeletonBlock className="h-10 w-36" />
-        <div className="mt-8 space-y-3">
-          {[0, 1, 2, 3, 4, 5, 6].map((item) => <SkeletonBlock key={item} className="h-10 w-full" />)}
-        </div>
-      </div>
       <div className="min-w-0 lg:pl-[272px]">
         <header className="sticky top-0 z-30 border-b border-[#C5C4DA] bg-white/95 backdrop-blur">
-          <div className="flex min-h-[64px] items-center gap-4 px-3 sm:min-h-[72px] sm:px-6 lg:px-8">
-            <SkeletonBlock className="h-10 w-10 rounded-xl lg:hidden" />
-            <SkeletonBlock className="hidden h-11 max-w-md flex-1 rounded-full md:block" />
-            <SkeletonBlock className="ml-auto h-9 w-24 rounded-full" />
-            <SkeletonBlock className="h-10 w-10 rounded-full" />
+          <div className="flex min-h-[64px] items-center justify-center px-3 sm:min-h-[72px] sm:px-6 lg:px-8">
+            <LoadingSpinner label="Checking dashboard access" />
           </div>
         </header>
         <main className="min-w-0 px-3 py-5 sm:px-6 sm:py-6 lg:px-8">
-          <DashboardPageSkeleton title="Preparing dashboard" />
+          <DashboardPageLoader title="Preparing dashboard" />
         </main>
       </div>
     </div>
@@ -150,11 +141,7 @@ function RouteLoadingOverlay({ show }: { show: boolean }) {
       </div>
       <div className="ml-auto mr-3 mt-3 hidden w-[min(420px,calc(100vw-1.5rem))] rounded-2xl border border-[#C5C4DA] bg-white/92 p-4 shadow-2xl backdrop-blur sm:block lg:mr-8">
         <div className="flex items-center gap-3">
-          <SkeletonBlock className="h-10 w-10 rounded-xl" />
-          <div className="flex-1 space-y-2">
-            <SkeletonBlock className="h-4 w-1/2" />
-            <SkeletonBlock className="h-3 w-3/4" />
-          </div>
+          <LoadingSpinner label="Loading page" />
         </div>
       </div>
     </div>
@@ -167,7 +154,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<"test" | "live">("test");
   const toastMessage = useDashboardToasts();
   const { routeLoading, handleClickCapture } = useDashboardRouteLoading();
-  if (!ready) return <DashboardShellSkeleton />;
+  if (!ready) return <DashboardShellLoader />;
 
   return (
     <div className="dashboard-theme min-h-screen overflow-x-hidden bg-[#F7F9FB] text-[#191C1E]" onClickCapture={handleClickCapture}>

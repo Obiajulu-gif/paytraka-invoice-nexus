@@ -6,7 +6,7 @@ export async function createSupplier(data: SupplierRequest) {
   return response.data;
 }
 
-export async function listSuppliers(params: Omit<PaginatedQuery, "search">) {
+export async function listSuppliers(params: PaginatedQuery) {
   const response = await apiClient.get<ApiResponse<Supplier[]>>("/suppliers", { params });
   return response.data;
 }
