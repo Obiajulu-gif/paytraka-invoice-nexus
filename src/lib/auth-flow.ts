@@ -10,5 +10,6 @@ export function getAuthPageRedirect(state: OnboardingState, session: SessionSnap
 }
 
 export function getAuthSuccessRedirect(user?: { kyc_complete?: boolean }) {
-  return user?.kyc_complete ? "/dashboard" : "/dashboard/kyc";
+  void user;
+  return "/onboarding/business-details";
 }

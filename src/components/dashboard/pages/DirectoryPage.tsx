@@ -89,7 +89,7 @@ function customerToValues(customer: Customer): Record<string, string> {
     LGA: customer.lga ?? "",
     Country: customer.country ?? "",
     "Postal zone": customer.postal_code ?? "",
-    Description: customer.description ?? "",
+    Description: customer.business_description ?? "",
     "Preferred currency": customer.preferred_currency ?? "NGN",
     "Tax ID/TIN": customer.tax_identification_number ?? "",
     "RC Number": customer.rc_number ?? "",
@@ -120,7 +120,8 @@ function customerPayload(data: Record<string, string>): CustomerRequest {
   const name = data["Customer name"]?.trim();
   if (!name) throw new Error("Customer name is required.");
   return {
-    customer_type: (data["Customer type"]?.toLowerCase() || "business") as CustomerRequest["customer_type"],
+    customer_type: (data["Customer type"]?.toLowerCase() ||
+      "business") as CustomerRequest["customer_type"],
     name,
     email: data.Email?.trim() || undefined,
     phone1: data["Primary telephone (+country code)"]?.trim() || undefined,
@@ -132,7 +133,7 @@ function customerPayload(data: Record<string, string>): CustomerRequest {
     lga: data.LGA?.trim() || undefined,
     country: data.Country?.trim() || undefined,
     postal_code: data["Postal zone"]?.trim() || undefined,
-    description: data.Description?.trim() || undefined,
+    business_description: data["Description"]?.trim() || undefined,
     preferred_currency: data["Preferred currency"]?.trim() || "NGN",
     tax_identification_number: data["Tax ID/TIN"]?.trim() || undefined,
     rc_number: data["RC Number"]?.trim() || undefined,
@@ -143,7 +144,8 @@ function supplierPayload(data: Record<string, string>): SupplierRequest {
   const supplierName = data["Supplier name"]?.trim();
   if (!supplierName) throw new Error("Supplier name is required.");
   return {
-    supplier_type: (data["Supplier type"]?.toLowerCase() || "business") as SupplierRequest["supplier_type"],
+    supplier_type: (data["Supplier type"]?.toLowerCase() ||
+      "business") as SupplierRequest["supplier_type"],
     supplier_name: supplierName,
     contact_person: data["Contact person"]?.trim() || undefined,
     email: data.Email?.trim() || undefined,
@@ -166,7 +168,11 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
   const isCustomers = type === "customers";
   const { user } = useAuth();
   const { company } = useCompany(user?.company_id);
-  const companyName = company?.company_name || user?.company_name || user?.trading_name || "Company";
+  const companyName =
+    company?.company_name ||
+    user?.company_name ||
+    user?.trading_name ||
+    "Company";
   const customersState = useCustomers();
   const suppliersState = useSuppliers();
   const state = isCustomers ? customersState : suppliersState;
@@ -183,47 +189,53 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
 
   function exportDirectory() {
     if (isCustomers) {
-      downloadCsv("customers-full-export.csv", customersState.customers.map((customer) => ({
-        company_name: companyName,
-        name: customer.name,
-        type: customer.customer_type,
-        email: customer.email,
-        primary_phone: customer.phone1,
-        secondary_phone: customer.phone2,
-        description: customer.description,
-        street_name: customer.street_name ?? customer.billing_address,
-        city: customer.city,
-        state: customer.state,
-        lga: customer.lga,
-        postal_zone: customer.postal_code,
-        country: customer.country,
-        preferred_currency: customer.preferred_currency,
-        tin: customer.tax_identification_number,
-        rc_number: customer.rc_number,
-        compliance_score: `${complianceScore(customer)}%`,
-        generated_from: "PayTraka",
-      })));
+      downloadCsv(
+        "customers-full-export.csv",
+        customersState.customers.map((customer) => ({
+          company_name: companyName,
+          name: customer.name,
+          type: customer.customer_type,
+          email: customer.email,
+          primary_phone: customer.phone1,
+          secondary_phone: customer.phone2,
+          business_description: customer.business_description,
+          street_name: customer.street_name ?? customer.billing_address,
+          city: customer.city,
+          state: customer.state,
+          lga: customer.lga,
+          postal_zone: customer.postal_code,
+          country: customer.country,
+          preferred_currency: customer.preferred_currency,
+          tin: customer.tax_identification_number,
+          rc_number: customer.rc_number,
+          compliance_score: `${complianceScore(customer)}%`,
+          generated_from: "PayTraka",
+        })),
+      );
       return;
     }
-    downloadCsv("suppliers-full-export.csv", suppliersState.suppliers.map((supplier) => ({
-      company_name: companyName,
-      supplier_name: supplier.supplier_name,
-      type: supplier.supplier_type,
-      contact_person: supplier.contact_person,
-      email: supplier.email,
-      phone: supplier.phone,
-      description: supplier.description,
-      street_name: supplier.street_name ?? supplier.address,
-      city: supplier.city,
-      state: supplier.state,
-      lga: supplier.lga,
-      postal_zone: supplier.postal_code,
-      country: supplier.country,
-      tin: supplier.tax_identification_number,
-      rc_number: supplier.rc_number,
-      payment_terms: supplier.payment_terms,
-      generated_from: "PayTraka",
-    })));
+    downloadCsv(
+      "suppliers-full-export.csv",
+      suppliersState.suppliers.map((supplier) => ({
+        company_name: companyName,
+        supplier_name: supplier.supplier_name,
+        type: supplier.supplier_type,
+        contact_person: supplier.contact_person,
+        email: supplier.email,
+        phone: supplier.phone,
+        description: supplier.description,
+        street_name: supplier.street_name ?? supplier.address,
+        city: supplier.city,
+        state: supplier.state,
+        lga: supplier.lga,
+        postal_zone: supplier.postal_code,
+        country: supplier.country,
+        tin: supplier.tax_identification_number,
+        rc_number: supplier.rc_number,
+        payment_terms: supplier.payment_terms,
+        generated_from: "PayTraka",
+      })),
+    );
   }
 
   async function importDirectory(file?: File) {
@@ -234,12 +246,15 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
           const rows = parseCsv(await file.text());
           for (const row of rows) {
             await customersState.create({
-              customer_type: (row.type || row.customer_type || "business") as CustomerRequest["customer_type"],
+              customer_type: (row.type ||
+                row.customer_type ||
+                "business") as CustomerRequest["customer_type"],
               name: row.name || row.customer_name,
               email: row.email || undefined,
               phone1: row.primary_phone || row.phone || undefined,
               phone2: row.secondary_phone || undefined,
-              description: row.description || undefined,
+              business_description:
+                row.business_description || row.description || undefined,
               street_name: row.street_name || row.address || undefined,
               billing_address: row.street_name || row.address || undefined,
               city: row.city || undefined,
@@ -260,11 +275,14 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
         notifyDashboard("Customers imported successfully");
         return;
       }
-      if (!file.name.toLowerCase().endsWith(".csv")) throw new Error("Supplier imports currently support CSV files.");
+      if (!file.name.toLowerCase().endsWith(".csv"))
+        throw new Error("Supplier imports currently support CSV files.");
       const rows = parseCsv(await file.text());
       for (const row of rows) {
         await suppliersState.create({
-          supplier_type: (row.type || row.supplier_type || "business") as SupplierRequest["supplier_type"],
+          supplier_type: (row.type ||
+            row.supplier_type ||
+            "business") as SupplierRequest["supplier_type"],
           supplier_name: row.supplier_name || row.name,
           contact_person: row.contact_person || undefined,
           email: row.email || undefined,
@@ -284,7 +302,12 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
       }
       notifyDashboard("Suppliers imported successfully");
     } catch (requestError) {
-      notifyDashboard(getApiErrorMessage(requestError, `Unable to import ${isCustomers ? "customers" : "suppliers"}.`));
+      notifyDashboard(
+        getApiErrorMessage(
+          requestError,
+          `Unable to import ${isCustomers ? "customers" : "suppliers"}.`,
+        ),
+      );
     }
   }
 
@@ -372,21 +395,38 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
     : suppliersState.suppliers.filter(
         (supplier) => !supplier.tax_identification_number,
       ).length;
-  const filteredCustomers = useMemo(() => customersState.customers.filter((customer) => {
-    if (activeTab === "Missing TIN") return !customer.tax_identification_number;
-    if (activeTab === "Compliant") return complianceScore(customer) === 100;
-    if (activeTab === "Individuals") return customer.customer_type === "individual";
-    if (activeTab === "Businesses") return customer.customer_type === "business";
-    return true;
-  }), [activeTab, customersState.customers]);
-  const filteredSuppliers = useMemo(() => suppliersState.suppliers.filter((supplier) => {
-    if (activeTab === "Missing TIN") return !supplier.tax_identification_number;
-    if (activeTab === "Verified") return Boolean(supplier.tax_identification_number);
-    if (activeTab === "Individuals") return supplier.supplier_type === "individual";
-    if (activeTab === "Businesses") return supplier.supplier_type === "business";
-    return true;
-  }), [activeTab, suppliersState.suppliers]);
-  const filteredCount = isCustomers ? filteredCustomers.length : filteredSuppliers.length;
+  const filteredCustomers = useMemo(
+    () =>
+      customersState.customers.filter((customer) => {
+        if (activeTab === "Missing TIN")
+          return !customer.tax_identification_number;
+        if (activeTab === "Compliant") return complianceScore(customer) === 100;
+        if (activeTab === "Individuals")
+          return customer.customer_type === "individual";
+        if (activeTab === "Businesses")
+          return customer.customer_type === "business";
+        return true;
+      }),
+    [activeTab, customersState.customers],
+  );
+  const filteredSuppliers = useMemo(
+    () =>
+      suppliersState.suppliers.filter((supplier) => {
+        if (activeTab === "Missing TIN")
+          return !supplier.tax_identification_number;
+        if (activeTab === "Verified")
+          return Boolean(supplier.tax_identification_number);
+        if (activeTab === "Individuals")
+          return supplier.supplier_type === "individual";
+        if (activeTab === "Businesses")
+          return supplier.supplier_type === "business";
+        return true;
+      }),
+    [activeTab, suppliersState.suppliers],
+  );
+  const filteredCount = isCustomers
+    ? filteredCustomers.length
+    : filteredSuppliers.length;
 
   return (
     <>
@@ -466,7 +506,13 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
         />
         <MetricCard
           label={isCustomers ? "Compliance Score" : "Spend Integrity"}
-          value={isCustomers && customersState.customers.length ? `${Math.round(customersState.customers.reduce((sum, customer) => sum + complianceScore(customer), 0) / customersState.customers.length)}%` : missingTin === 0 ? "100%" : "Review"}
+          value={
+            isCustomers && customersState.customers.length
+              ? `${Math.round(customersState.customers.reduce((sum, customer) => sum + complianceScore(customer), 0) / customersState.customers.length)}%`
+              : missingTin === 0
+                ? "100%"
+                : "Review"
+          }
           meta="State, LGA, address, city, postal zone, description, +telephone and TIN"
           tone="primary"
           icon={ShieldCheck}
@@ -483,18 +529,39 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
           />
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
             <label className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#C5C4DA] bg-white px-4 text-sm font-bold text-[#0001B1] hover:border-[#1117E8]">
-              <Upload className="h-4 w-4" /> Import {isCustomers ? "Excel/CSV" : "CSV"}
-              <input type="file" accept={isCustomers ? ".csv,.xlsx,.xls" : ".csv"} className="sr-only" onChange={(event) => void importDirectory(event.target.files?.[0])} />
+              <Upload className="h-4 w-4" /> Import{" "}
+              {isCustomers ? "Excel/CSV" : "CSV"}
+              <input
+                type="file"
+                accept={isCustomers ? ".csv,.xlsx,.xls" : ".csv"}
+                className="sr-only"
+                onChange={(event) =>
+                  void importDirectory(event.target.files?.[0])
+                }
+              />
             </label>
             <Button variant="secondary" onClick={exportDirectory}>
-              <Download className="h-4 w-4" /> Export {isCustomers ? "Customers" : "Suppliers"}
+              <Download className="h-4 w-4" /> Export{" "}
+              {isCustomers ? "Customers" : "Suppliers"}
             </Button>
           </div>
         </div>
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
           {(isCustomers
-            ? ["All Customers", "Missing TIN", "Compliant", "Individuals", "Businesses"]
-            : ["All Suppliers", "Missing TIN", "Verified", "Individuals", "Businesses"]
+            ? [
+                "All Customers",
+                "Missing TIN",
+                "Compliant",
+                "Individuals",
+                "Businesses",
+              ]
+            : [
+                "All Suppliers",
+                "Missing TIN",
+                "Verified",
+                "Individuals",
+                "Businesses",
+              ]
           ).map((tab) => (
             <button
               key={tab}
@@ -541,7 +608,15 @@ function DirectoryPage({ type }: { type: "customers" | "suppliers" }) {
                 Type: <StatusBadge>{customer.customer_type}</StatusBadge>,
                 TIN: customer.tax_identification_number ?? "Missing",
                 "RC Number": customer.rc_number ?? "-",
-                Compliance: <StatusBadge tone={complianceScore(customer) === 100 ? "success" : "warning"}>{complianceScore(customer)}%</StatusBadge>,
+                Compliance: (
+                  <StatusBadge
+                    tone={
+                      complianceScore(customer) === 100 ? "success" : "warning"
+                    }
+                  >
+                    {complianceScore(customer)}%
+                  </StatusBadge>
+                ),
                 Contact: (
                   <span className="whitespace-pre-line">
                     {[customer.email, customer.phone1, customer.phone2]
@@ -673,7 +748,10 @@ function RecordDetailsModal({
         </div>
         <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-4 sm:grid-cols-2 sm:gap-4 sm:p-6">
           {Object.entries(record.values).map(([label, value]) => (
-            <div key={label} className="min-w-0 rounded-xl bg-[#F1F4F8] p-3 sm:p-4">
+            <div
+              key={label}
+              className="min-w-0 rounded-xl bg-[#F1F4F8] p-3 sm:p-4"
+            >
               <p className="text-xs font-bold uppercase text-[#757588]">
                 {label}
               </p>

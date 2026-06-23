@@ -4,17 +4,21 @@ import {
   AlertTriangle,
   CheckCircle2,
   ClipboardCheck,
+  Radio,
   Plus,
   Truck,
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { CurrencyAmount } from "@/components/ui/CurrencyAmount";
 import { useCustomers } from "@/hooks/useCustomers";
 import { useInvoices } from "@/hooks/useInvoices";
 import { useProducts } from "@/hooks/useProducts";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { salesInvoiceBalance } from "@/lib/invoice-amounts";
+import { getMe } from "@/lib/api/auth";
+import { getCompanyMode } from "@/lib/api/companies";
 import {
   Button,
   Card,
@@ -27,6 +31,10 @@ import {
 } from "../ui";
 
 export function DashboardHome() {
+  const [firsConnection, setFirsConnection] = useState<{
+    enabled: boolean;
+    mode: "demo" | "live";
+  } | null>(null);
   const {
     customers,
     pagination: customerPagination,
@@ -53,6 +61,28 @@ export function DashboardHome() {
     0,
   );
 
+  useEffect(() => {
+    let cancelled = false;
+    async function loadFirsConnection() {
+      try {
+        const me = await getMe();
+        const mode = await getCompanyMode(me.data.company_id).catch(() => null);
+        if (!cancelled) {
+          setFirsConnection({
+            enabled: Boolean(me.data.firs_enabled),
+            mode: mode?.data.mode || me.data.mode || "demo",
+          });
+        }
+      } catch {
+        if (!cancelled) setFirsConnection(null);
+      }
+    }
+    loadFirsConnection();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <>
       <div className="mb-6 flex min-w-0 flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -74,6 +104,45 @@ export function DashboardHome() {
           title="Some dashboard data could not load"
           text={customerError || invoiceError}
         />
+      ) : null}
+      {firsConnection ? (
+        <Link
+          href="/dashboard/my-company"
+          className={`mb-6 flex items-center gap-4 rounded-2xl border p-4 transition hover:shadow-sm ${
+            firsConnection.enabled
+              ? "border-green-200 bg-green-50"
+              : "border-[#C5C4DA] bg-white"
+          }`}
+        >
+          <span
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${
+              firsConnection.enabled
+                ? "bg-green-100 text-green-700"
+                : "bg-[#F1F4F8] text-[#757588]"
+            }`}
+          >
+            <Radio className="h-5 w-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="block font-extrabold text-[#191C1E]">
+              FIRS connection
+            </span>
+            <span className="mt-0.5 block text-sm text-[#454557]">
+              {firsConnection.enabled
+                ? `Connected in ${firsConnection.mode === "live" ? "Live" : "Demo"} mode`
+                : "FIRS connection is currently disabled"}
+            </span>
+          </span>
+          <span
+            className={`ml-auto rounded-full px-3 py-1 text-xs font-bold ${
+              firsConnection.enabled
+                ? "bg-green-100 text-green-800"
+                : "bg-[#F1F4F8] text-[#757588]"
+            }`}
+          >
+            {firsConnection.enabled ? "Connected" : "Not connected"}
+          </span>
+        </Link>
       ) : null}
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard

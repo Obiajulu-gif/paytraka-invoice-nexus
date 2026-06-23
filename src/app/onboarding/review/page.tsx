@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { ReviewPage } from "@/components/onboarding/OnboardingFlow";
 
 export default function Review() {
-  redirect("/dashboard/kyc");
+  return <ReviewPage />;
 }

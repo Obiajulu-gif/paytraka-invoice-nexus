@@ -83,10 +83,10 @@ const navItems = [
   //   matches: ["/dashboard/compliance/status"],
   // },
   {
-    label: "KYC",
-    href: "/dashboard/kyc",
+    label: "My Company",
+    href: "/dashboard/my-company",
     icon: ShieldCheck,
-    matches: ["/dashboard/kyc"],
+    matches: ["/dashboard/my-company"],
   },
   {
     label: "Receipts",

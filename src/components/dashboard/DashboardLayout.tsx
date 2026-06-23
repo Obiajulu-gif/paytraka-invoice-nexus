@@ -148,7 +148,7 @@ function Topbar({
           {
             label: "Settings",
             icon: Settings,
-            action: () => router.push("/dashboard/kyc"),
+            action: () => router.push("/dashboard/my-company"),
             // action: () => router.push("/dashboard/settings"),
           },
         ].map(({ label, icon: Icon, action }) => (

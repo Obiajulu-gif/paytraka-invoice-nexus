@@ -34,6 +34,24 @@ export interface AuthUser {
   country?: string;
   logo_url?: string | null;
   status?: string;
+  phone?: string;
+  business_email?: string;
+  business_phone?: string;
+  reg_company_name?: string;
+  reg_trading_name?: string;
+  business_type?: string;
+  rc_number?: string | null;
+  city?: string;
+  state?: string;
+  lga?: string;
+  mode?: "demo" | "live";
+  nrs_businessid_test?: string | null;
+  nrs_businessid_live?: string | null;
+  nrs_apikey?: string | null;
+  nrs_apisecret?: string | null;
+  nrs_entityid?: string | null;
+  nrs_publickey?: string | null;
+  nrs_certificate?: string | null;
 }
 
 export interface AuthTokens {
@@ -97,10 +115,13 @@ export interface Company {
 export interface CompanyKycRequest {
   company_name: string;
   trading_name?: string;
+  business_description?: string;
+  company_size?: string;
+  annual_turnover?: string;
   business_email: string;
   business_phone: string;
   tax_identification_number: string;
-  rc_number: string;
+  rc_number?: string;
   business_type: string;
   address: string;
   city: string;
@@ -108,7 +129,8 @@ export interface CompanyKycRequest {
   country?: string;
   lga?: string;
   postal_code?: string;
-  nrs_businessid?: string;
+  nrs_businessid_test?: string;
+  nrs_businessid_live?: string;
   nrs_apikey?: string;
   nrs_apisecret?: string;
   nrs_entityid?: string;
@@ -120,6 +142,21 @@ export interface CompanyMode {
   mode: "demo" | "live";
   firs_enabled: number;
 }
+
+export type CompanyUpdateRequest = Partial<
+  Omit<
+    CompanyKycRequest,
+    | "company_name"
+    | "business_email"
+    | "business_type"
+    | "tax_identification_number"
+    | "rc_number"
+    | "address"
+  >
+>;
+
+export type FirsSettingsRequest = { firs_enabled: 0 | 1 };
+export type CompanyModeRequest = { mode: "demo" | "live" };
 
 export interface Customer {
   id: string;
@@ -136,7 +173,7 @@ export interface Customer {
   lga?: string;
   country?: string;
   postal_code?: string;
-  description?: string;
+  business_description?: string;
   preferred_currency?: string;
   tax_identification_number?: string;
   rc_number?: string;

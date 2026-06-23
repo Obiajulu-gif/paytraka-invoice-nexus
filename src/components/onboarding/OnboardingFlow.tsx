@@ -37,7 +37,6 @@ import {
   TaxProfileData,
   defaultOnboardingState,
   getOnboardingState,
-  maskAccountNumber,
   saveOnboardingState,
 } from "@/lib/onboarding-store";
 import { getApiErrorMessage } from "@/lib/api/client";
@@ -52,6 +51,7 @@ import {
 import { submitKyc } from "@/lib/api/companies";
 import { getAuthSuccessRedirect } from "@/lib/auth-flow";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import nigeriaStates from "nigeria-states-lgas/src/statesAndLocalGov.json";
 
 type PageKind =
   | "signup"
@@ -231,18 +231,37 @@ const sidebarConfigs: Record<PageKind, SidebarConfig> = {
 };
 
 const industries = [
-  "Hospitality",
-  "Retail",
-  "Logistics",
-  "Professional Services",
-  "Manufacturing",
-  "Technology",
   "Agriculture",
+  "Automotive",
+  "Construction & Real Estate",
+  "Consulting",
+  "Education",
+  "Energy & Utilities",
+  "Engineering",
+  "Entertainment & Media",
   "Financial Services",
+  "FMCG",
+  "Government & Public Sector",
+  "Healthcare",
+  "Hospitality & Tourism",
+  "Information Technology",
+  "Insurance",
+  "Legal Services",
+  "Logistics & Transportation",
+  "Manufacturing",
+  "Mining & Natural Resources",
+  "Non-Profit / NGO",
+  "Oil & Gas",
+  "Pharmaceuticals",
+  "Professional Services",
+  "Retail & E-Commerce",
+  "Telecommunications",
+  "Wholesale & Distribution",
+  "Religious Organization",
+  "Other",
 ];
+
 const states = [
-  "Lagos",
-  "Abuja FCT",
   "Abia",
   "Adamawa",
   "Akwa Ibom",
@@ -253,26 +272,82 @@ const states = [
   "Borno",
   "Cross River",
   "Delta",
+  "Ebonyi",
   "Edo",
+  "Ekiti",
   "Enugu",
-  "Kano",
+  "FCT Abuja",
+  "Gombe",
+  "Imo",
+  "Jigawa",
   "Kaduna",
+  "Kano",
+  "Katsina",
+  "Kebbi",
+  "Kogi",
+  "Kwara",
+  "Lagos",
+  "Nasarawa",
+  "Niger",
   "Ogun",
+  "Ondo",
+  "Osun",
   "Oyo",
+  "Plateau",
   "Rivers",
+  "Sokoto",
+  "Taraba",
+  "Yobe",
+  "Zamfara",
 ];
+
 const banks = [
   "Access Bank",
-  "Zenith Bank",
-  "GTBank",
-  "First Bank",
-  "UBA",
-  "Stanbic IBTC",
+  "Citibank Nigeria",
+  "Ecobank",
   "Fidelity Bank",
-  "Sterling Bank",
-  "Wema Bank",
+  "First Bank",
+  "First City Monument Bank (FCMB)",
+  "Globus Bank",
+  "Guaranty Trust Bank (GTBank)",
+  "Heritage Bank",
+  "Jaiz Bank",
+  "Keystone Bank",
+  "Lotus Bank",
+  "Moniepoint",
   "Opay",
+  "Parallex Bank",
+  "Polaris Bank",
+  "PremiumTrust Bank",
+  "Providus Bank",
+  "Stanbic IBTC",
+  "Sterling Bank",
+  "SunTrust Bank",
+  "Titan Trust Bank",
+  "Union Bank",
+  "United Bank for Africa (UBA)",
+  "Unity Bank",
+  "Wema Bank",
+  "Zenith Bank",
+  "PalmPay",
+  "Kuda Bank",
 ];
+
+const companySizes = [
+  "Micro Enterprise (1-9 Employees)",
+  "Small Business (10-49 Employees)",
+  "Medium Enterprise (50-199 Employees)",
+  "Large Enterprise (200+ Employees)",
+];
+
+const annualTurnover = [
+  "Below ₦25 Million",
+  "₦25 Million - ₦100 Million",
+  "₦100 Million - ₦500 Million",
+  "₦500 Million - ₦1 Billion",
+  "Above ₦1 Billion",
+];
+
 const colorOptions = [
   ["Blue", "#1117E8"],
   ["Purple", "#5B4BEA"],
@@ -500,18 +575,20 @@ function StepActions({
   nextLabel = "Continue",
   disabled = false,
 }: {
-  backHref: string;
+  backHref?: string;
   nextLabel?: string;
   disabled?: boolean;
 }) {
   return (
     <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row">
-      <Link
-        href={backHref}
-        className="inline-flex h-12 items-center justify-center rounded-xl border border-[#C5C4DA] px-8 text-base font-bold text-[#191C1E] transition hover:border-[#1117E8] hover:text-[#0001B1]"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Back
-      </Link>
+      {backHref ? (
+        <Link
+          href={backHref}
+          className="inline-flex h-12 items-center justify-center rounded-xl border border-[#C5C4DA] px-8 text-base font-bold text-[#191C1E] transition hover:border-[#1117E8] hover:text-[#0001B1]"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" /> Back
+        </Link>
+      ) : null}
       <button
         type="submit"
         disabled={disabled}
@@ -552,17 +629,9 @@ function useOnboardingGuard(
     const stepRoutes = {
       "business-details": "/onboarding/business-details",
       "tax-profile": "/onboarding/tax-profile",
-      "bank-details": "/onboarding/bank-details",
-      preferences: "/onboarding/preferences",
       review: "/onboarding/review",
     } as const;
-    const stepOrder = [
-      "business-details",
-      "tax-profile",
-      "bank-details",
-      "preferences",
-      "review",
-    ] as const;
+    const stepOrder = ["business-details", "tax-profile", "review"] as const;
     if (kind === "auth") {
       let cancelled = false;
       fetch("/api/auth/session", { cache: "no-store" })
@@ -593,7 +662,7 @@ function useOnboardingGuard(
         return;
       }
       if (state.completed) {
-        router.replace("/dashboard");
+        router.replace("/login?onboarding=complete");
         return;
       }
       if (state.currentStep in stepRoutes) {
@@ -846,9 +915,23 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   useOnboardingGuard("auth");
+
+  useEffect(() => {
+    const state = getOnboardingState();
+    setEmail(state.signup.workEmail);
+    if (
+      new URLSearchParams(window.location.search).get("onboarding") ===
+      "complete"
+    ) {
+      setNotice(
+        "Your setup is complete. Sign in to access your dashboard and make updates.",
+      );
+    }
+  }, []);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -908,6 +991,11 @@ export function LoginPage() {
         <p className="mt-3 text-base text-[#454557] sm:text-lg">
           Please enter your credentials to access your dashboard.
         </p>
+        {notice ? (
+          <p className="mt-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
+            {notice}
+          </p>
+        ) : null}
         <div className="mt-8 space-y-5">
           <Field label="Work Email">
             <div className="relative">
@@ -1021,10 +1109,8 @@ export function VerifyEmailPage() {
       const response = await verifyOtp(state.signup.userId, otp);
       save({
         signup: { emailVerified: true },
-        currentStep: response.data.user.kyc_complete
-          ? "complete"
-          : "business-details",
-        completed: Boolean(response.data.user.kyc_complete),
+        currentStep: "business-details",
+        completed: false,
       });
       router.push(getAuthSuccessRedirect(response.data.user));
     } catch (requestError) {
@@ -1172,7 +1258,24 @@ export function BusinessDetailsPage() {
 
   useOnboardingGuard("onboarding");
 
-  useEffect(() => setForm(getOnboardingState().businessDetails), []);
+  useEffect(() => {
+    const stored = getOnboardingState().businessDetails;
+    const digits = stored.phoneNumber.replace(/\D/g, "");
+    const phoneNumber = digits.startsWith("234")
+      ? digits.slice(3, 13)
+      : digits.startsWith("0")
+        ? digits.slice(1, 11)
+        : digits.slice(0, 10);
+    setForm({ ...stored, phoneNumber });
+  }, []);
+  const lgaStateName =
+    form.state === "FCT Abuja"
+      ? "Federal Capital Territory"
+      : form.state === "Nasarawa"
+        ? "Nassarawa"
+        : form.state;
+  const lgaOptions =
+    nigeriaStates.find((item) => item.state === lgaStateName)?.lgas ?? [];
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -1180,12 +1283,15 @@ export function BusinessDetailsPage() {
       "businessName",
       "businessType",
       "industry",
+      "businessDescription",
       "taxId",
       "contactPerson",
       "businessEmail",
       "city",
       "state",
       "country",
+      "lga",
+      "postalCode",
       "phoneNumber",
       "businessAddress",
     ]);
@@ -1194,6 +1300,14 @@ export function BusinessDetailsPage() {
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.businessEmail)
     )
       nextErrors.businessEmail = "Enter a valid business email.";
+    if (form.phoneNumber && !/^[789][01]\d{8}$/.test(form.phoneNumber))
+      nextErrors.phoneNumber = "Enter a valid 10-digit Nigerian phone number.";
+    if (form.taxId && !/^\d{8}-\d{4}$/.test(form.taxId))
+      nextErrors.taxId = "Use the format 12345678-1234.";
+    if (form.rcNumber && !/^RC \d{6}$/.test(form.rcNumber))
+      nextErrors.rcNumber = "Use the format RC 123456.";
+    if (form.postalCode && !/^\d{6}$/.test(form.postalCode))
+      nextErrors.postalCode = "Enter a 6-digit postal code.";
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
     save({ businessDetails: form, currentStep: "tax-profile" });
@@ -1204,18 +1318,16 @@ export function BusinessDetailsPage() {
     <AuthOnboardingLayout kind="business">
       <form onSubmit={submit} className="mx-auto max-w-5xl py-8">
         <ProgressHeader
-          step="STEP 1 OF 5"
+          step="STEP 1 OF 3"
           title="Business Details"
-          percent={20}
+          percent={33}
         />
         <div className="stagger-children grid gap-6 md:grid-cols-2">
           <Field label="Business Name" error={errors.businessName}>
             <input
               value={form.businessName}
-              onChange={(e) =>
-                setForm({ ...form, businessName: e.target.value })
-              }
-              className={inputClass}
+              readOnly
+              className={`${inputClass} cursor-not-allowed bg-[#F1F4F8] text-[#757588]`}
               placeholder="Legal registered name"
             />
           </Field>
@@ -1235,14 +1347,22 @@ export function BusinessDetailsPage() {
               onChange={(businessType) => setForm({ ...form, businessType })}
               options={[
                 "Limited Liability Company",
+                "Business Name / Enterprise",
                 "Sole Proprietorship",
                 "Partnership",
-                "NGO",
+                "Incorporated Trustees / NGO",
+                "Cooperative Society",
                 "Government Agency",
+                "Public Sector Institution",
+                "Educational Institution",
+                "Religious Organization",
+                "Professional Firm",
+                "Other",
               ]}
               placeholder="Select business type"
             />
           </Field>
+
           <div className="md:col-span-2">
             <Field label="Industry" error={errors.industry}>
               <SelectField
@@ -1253,12 +1373,80 @@ export function BusinessDetailsPage() {
               />
             </Field>
           </div>
+          <div className="md:col-span-2">
+            <Field
+              label="Business Description"
+              error={errors.businessDescription}
+            >
+              <textarea
+                value={form.businessDescription}
+                onChange={(e) =>
+                  setForm({ ...form, businessDescription: e.target.value })
+                }
+                className={`${inputClass} h-28 py-4`}
+                placeholder="Briefly describe what your business does"
+              />
+            </Field>
+          </div>
+          <Field label="Company Size (Optional)">
+            <SelectField
+              value={form.companySize}
+              onChange={(companySize) => setForm({ ...form, companySize })}
+              options={["1–10", "11–50", "51–200", "201–500", "501+"]}
+              placeholder="Select company size"
+            />
+          </Field>
+          <Field label="Annual Turnover (Optional)">
+            <SelectField
+              value={form.annualTurnover}
+              onChange={(annualTurnover) =>
+                setForm({ ...form, annualTurnover })
+              }
+              options={[
+                "Below ₦25 million",
+                "₦25 million – ₦100 million",
+                "₦100 million – ₦500 million",
+                "₦500 million – ₦1 billion",
+                "Above ₦1 billion",
+              ]}
+              placeholder="Select annual turnover"
+            />
+          </Field>
           <Field label="Tax Identification Number" error={errors.taxId}>
             <input
               value={form.taxId}
-              onChange={(e) => setForm({ ...form, taxId: e.target.value })}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 12);
+                setForm({
+                  ...form,
+                  taxId:
+                    digits.length > 8
+                      ? `${digits.slice(0, 8)}-${digits.slice(8)}`
+                      : digits,
+                });
+              }}
+              type="text"
+              inputMode="numeric"
+              maxLength={13}
               className={inputClass}
-              placeholder="TIN or CAC Registration Number"
+              placeholder="12345678-1234"
+            />
+          </Field>
+          <Field label="CAC / RC Number (Optional)" error={errors.rcNumber}>
+            <input
+              value={form.rcNumber}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 6);
+                setForm({
+                  ...form,
+                  rcNumber: digits ? `RC ${digits}` : "",
+                });
+              }}
+              type="text"
+              inputMode="numeric"
+              maxLength={9}
+              className={inputClass}
+              placeholder="RC 123456"
             />
           </Field>
           <Field label="Contact Person" error={errors.contactPerson}>
@@ -1274,6 +1462,7 @@ export function BusinessDetailsPage() {
           <Field label="Business Email" error={errors.businessEmail}>
             <input
               value={form.businessEmail}
+              type="email"
               onChange={(e) =>
                 setForm({ ...form, businessEmail: e.target.value })
               }
@@ -1292,7 +1481,7 @@ export function BusinessDetailsPage() {
           <Field label="State" error={errors.state}>
             <SelectField
               value={form.state}
-              onChange={(state) => setForm({ ...form, state })}
+              onChange={(state) => setForm({ ...form, state, lga: "" })}
               options={states}
               placeholder="Select state"
             />
@@ -1300,39 +1489,60 @@ export function BusinessDetailsPage() {
           <Field label="Country" error={errors.country}>
             <input
               value={form.country}
-              onChange={(e) => setForm({ ...form, country: e.target.value })}
-              className={inputClass}
+              readOnly
+              className={`${inputClass} cursor-not-allowed bg-[#F1F4F8] text-[#757588]`}
               placeholder="Nigeria"
             />
           </Field>
-          <Field label="Local Government Area (Optional)">
-            <input
+          <Field label="Local Government Area" error={errors.lga}>
+            <SelectField
               value={form.lga}
-              onChange={(e) => setForm({ ...form, lga: e.target.value })}
-              className={inputClass}
-              placeholder="Somolu"
+              onChange={(lga) => setForm({ ...form, lga })}
+              options={lgaOptions}
+              placeholder={
+                form.state
+                  ? "Select local government area"
+                  : "Select a state first"
+              }
             />
           </Field>
-          <Field label="Postal Code (Optional)">
+          <Field label="Postal Code" error={errors.postalCode}>
             <input
               value={form.postalCode}
-              onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  postalCode: e.target.value.replace(/\D/g, "").slice(0, 6),
+                })
+              }
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
               className={inputClass}
               placeholder="100001"
             />
           </Field>
           <Field label="Phone Number" error={errors.phoneNumber}>
-            <div className="flex">
-              <span className="inline-flex h-14 items-center rounded-l-xl border border-r-0 border-[#C5C4DA] bg-white px-5 text-[#454557]">
-                +234
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 border-r border-[#C5C4DA] pr-3 font-semibold text-[#454557]">
+                NG +234
               </span>
               <input
                 value={form.phoneNumber}
                 onChange={(e) =>
-                  setForm({ ...form, phoneNumber: e.target.value })
+                  setForm({
+                    ...form,
+                    phoneNumber: e.target.value
+                      .replace(/\D/g, "")
+                      .replace(/^0/, "")
+                      .slice(0, 10),
+                  })
                 }
-                className={`${inputClass} rounded-l-none`}
-                placeholder="800 000 0000"
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                className={`${inputClass} pl-28`}
+                placeholder="801 234 5678"
               />
             </div>
           </Field>
@@ -1347,7 +1557,7 @@ export function BusinessDetailsPage() {
             />
           </Field>
         </div>
-        <StepActions backHref="/verify-email" />
+        <StepActions />
       </form>
     </AuthOnboardingLayout>
   );
@@ -1367,144 +1577,76 @@ export function TaxProfilePage() {
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    const nextErrors = requireFields(form, [
-      "tin",
-      "cacNumber",
-      "vatStatus",
-      "vatRate",
-      "businessSector",
-      "environmentPreference",
-      "submissionPreference",
-    ]);
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length) return;
-    save({ taxProfile: form, currentStep: "bank-details" });
-    router.push("/onboarding/bank-details");
+    setErrors({});
+    save({ taxProfile: form, currentStep: "review" });
+    router.push("/onboarding/review");
   }
 
   return (
     <AuthOnboardingLayout kind="tax">
       <form onSubmit={submit} className="mx-auto max-w-5xl py-8">
         <ProgressHeader
-          step="STEP 2 OF 5"
-          title="Tax & Compliance Profile"
-          percent={40}
+          step="STEP 2 OF 3"
+          title="Compliance Profile"
+          percent={67}
         />
-        <div className="stagger-children grid gap-6 md:grid-cols-2">
-          <Field label="TIN" error={errors.tin}>
-            <input
-              value={form.tin}
-              onChange={(e) => setForm({ ...form, tin: e.target.value })}
-              className={inputClass}
-              placeholder="Tax Identification Number"
-            />
-          </Field>
-          <Field label="CAC/RC Number" error={errors.cacNumber}>
-            <input
-              value={form.cacNumber}
-              onChange={(e) => setForm({ ...form, cacNumber: e.target.value })}
-              className={inputClass}
-              placeholder="RC 0000000"
-            />
-          </Field>
-          <Field label="VAT Registration Status" error={errors.vatStatus}>
-            <SelectField
-              value={form.vatStatus}
-              onChange={(vatStatus) => setForm({ ...form, vatStatus })}
-              options={["Registered", "Not Registered", "Not Sure"]}
-              placeholder="Select status"
-            />
-          </Field>
-          <Field label="VAT Rate" error={errors.vatRate}>
-            <input
-              value={form.vatRate}
-              onChange={(e) => setForm({ ...form, vatRate: e.target.value })}
-              className={inputClass}
-              placeholder="7.5%"
-            />
-          </Field>
-          <Field label="Business Sector" error={errors.businessSector}>
-            <SelectField
-              value={form.businessSector}
-              onChange={(businessSector) =>
-                setForm({ ...form, businessSector })
-              }
-              options={industries}
-              placeholder="Select sector"
-            />
-          </Field>
-          <Field label="Tax Office / FIRS Office Optional">
-            <input
-              value={form.taxOffice}
-              onChange={(e) => setForm({ ...form, taxOffice: e.target.value })}
-              className={inputClass}
-              placeholder="Lagos Mainland tax office"
-            />
-          </Field>
-          <Field
-            label="E-invoicing Environment Preference"
-            error={errors.environmentPreference}
-          >
-            <SelectField
-              value={form.environmentPreference}
-              onChange={(environmentPreference) =>
-                setForm({ ...form, environmentPreference })
-              }
-              options={[
-                "Test/Sandbox first",
-                "Live after approval",
-                "Not sure",
-              ]}
-              placeholder="Select environment"
-            />
-          </Field>
-          <Field label="APP/SI Provider Preference Optional">
-            <input
-              value={form.providerPreference}
-              onChange={(e) =>
-                setForm({ ...form, providerPreference: e.target.value })
-              }
-              className={inputClass}
-              placeholder="Interswitch / Approved APP / Not selected"
-            />
-          </Field>
-        </div>
-        <fieldset className="mt-6 rounded-2xl border border-[#C5C4DA] bg-white p-6">
-          <legend className="px-2 text-base font-bold">
-            Submission Preference
-          </legend>
-          {[
-            "Submit manually after review",
-            "Submit automatically after invoice approval",
-          ].map((option) => (
-            <label
-              key={option}
-              className="mt-3 flex gap-3 text-base font-semibold text-[#454557]"
-            >
-              <input
-                type="radio"
-                checked={form.submissionPreference === option}
-                onChange={() =>
-                  setForm({ ...form, submissionPreference: option })
-                }
-              />
-              {option}
-            </label>
-          ))}
-        </fieldset>
         <fieldset className="mt-6 rounded-2xl border border-[#C5C4DA] bg-white p-6">
           <legend className="px-2 text-base font-bold">
             FIRS/NRS Credentials Optional
           </legend>
+          <aside className="mt-3 rounded-2xl border border-[#B9C2FF] bg-[#EEF1FF] p-5 text-sm leading-6 text-[#454557]">
+            <h2 className="font-extrabold text-[#0001B1]">
+              How to find your NRS credentials
+            </h2>
+            <p className="mt-2">
+              Log in to the <strong>NRS e-Invoicing Portal</strong>, open{" "}
+              <strong>My Account</strong>, then select the{" "}
+              <strong>API Integration</strong> tab.
+            </p>
+            <ul className="mt-3 list-disc space-y-2 pl-5">
+              <li>
+                Toggle between the <strong>Test</strong> and{" "}
+                <strong>Live</strong> environments. Copy the{" "}
+                <strong>Business ID</strong> shown in each environment into
+                the matching field below.
+              </li>
+              <li>
+                Copy <strong>API Key</strong> into NRS API Key.
+              </li>
+              <li>
+                Copy <strong>Client Secret</strong> into NRS API Secret.
+              </li>
+              <li>
+                Copy <strong>Entity ID</strong> into NRS Entity ID.
+              </li>
+              <li>
+                For the public key and certificate, open{" "}
+                <strong>Cryptographic Key</strong>, choose{" "}
+                <strong>Manage Cryptographic Keys</strong>, then download the
+                key files and provide the Public Key and Certificate values
+                below.
+              </li>
+            </ul>
+          </aside>
           <div className="mt-3 grid gap-6 md:grid-cols-2">
-            <Field label="NRS Business ID">
+            <Field label="NRS Business ID — Test">
               <input
-                value={form.nrsBusinessId}
+                value={form.nrsBusinessIdTest}
                 onChange={(e) =>
-                  setForm({ ...form, nrsBusinessId: e.target.value })
+                  setForm({ ...form, nrsBusinessIdTest: e.target.value })
                 }
                 className={inputClass}
-                placeholder="NRS business ID"
+                placeholder="Test environment business ID"
+              />
+            </Field>
+            <Field label="NRS Business ID — Live">
+              <input
+                value={form.nrsBusinessIdLive}
+                onChange={(e) =>
+                  setForm({ ...form, nrsBusinessIdLive: e.target.value })
+                }
+                className={inputClass}
+                placeholder="Live environment business ID"
               />
             </Field>
             <Field label="NRS API Key">
@@ -1559,11 +1701,7 @@ export function TaxProfilePage() {
             </Field>
           </div>
         </fieldset>
-        <div className="mt-6 rounded-2xl border border-[#C5C4DA] bg-[#EEF1FF] p-5 text-sm leading-6 text-[#454557]">
-          PayTraka can prepare invoice data for submission through approved
-          APP/SI pathways. Do not present PayTraka as already approved unless
-          this has been officially confirmed.
-        </div>
+
         <StepActions backHref="/onboarding/business-details" />
       </form>
     </AuthOnboardingLayout>
@@ -1760,7 +1898,7 @@ export function PreferencesPage() {
         onSubmit={submit}
         className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col py-6"
       >
-        <ProgressHeader step="STEP 4 OF 5" title="Preferences" percent={80} />
+        <ProgressHeader step="STEP 3 OF 4" title="Preferences" percent={75} />
         <div className="grid flex-1 items-center gap-12 py-10 lg:grid-cols-2">
           <section>
             <h2 className="text-2xl font-bold text-[#191C1E]">
@@ -1806,7 +1944,7 @@ export function PreferencesPage() {
             </div>
           </section>
         </div>
-        <StepActions backHref="/onboarding/bank-details" />
+        <StepActions backHref="/onboarding/tax-profile" />
         <div className="mt-6 flex flex-wrap gap-6 text-sm font-semibold text-[#454557]">
           <Link href="/resources">Terms of Service</Link>
           <Link href="/resources">Privacy Policy</Link>
@@ -1821,10 +1959,21 @@ export function ReviewPage() {
   const router = useRouter();
   const { state, save, ready } = useOnboarding();
   const [confirmed, setConfirmed] = useState(false);
+  const [redtechConfirmed, setRedtechConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   useOnboardingGuard("onboarding");
+
+  const hasNrsDetails = Boolean(
+    state.taxProfile.nrsBusinessIdTest ||
+    state.taxProfile.nrsBusinessIdLive ||
+    state.taxProfile.nrsApiKey ||
+    state.taxProfile.nrsApiSecret ||
+    state.taxProfile.nrsEntityId ||
+    state.taxProfile.nrsPublicKey ||
+    state.taxProfile.nrsCertificate,
+  );
 
   const cards = useMemo(
     () => [
@@ -1834,39 +1983,20 @@ export function ReviewPage() {
         [
           ["Business name", state.businessDetails.businessName],
           ["Industry", state.businessDetails.industry],
-          ["TIN/CAC", state.businessDetails.taxId],
+          ["TIN", state.businessDetails.taxId],
+          ["CAC / RC", state.businessDetails.rcNumber],
           ["Contact", state.businessDetails.contactPerson],
+          ["Company size", state.businessDetails.companySize],
         ],
       ],
       [
         "Tax & Compliance",
         "/onboarding/tax-profile",
         [
-          ["VAT status", state.taxProfile.vatStatus],
-          ["VAT rate", state.taxProfile.vatRate],
-          ["Submission", state.taxProfile.submissionPreference],
-          ["Environment", state.taxProfile.environmentPreference],
-        ],
-      ],
-      [
-        "Bank Details",
-        "/onboarding/bank-details",
-        [
-          ["Bank", state.bankDetails.bankName],
-          ["Account", maskAccountNumber(state.bankDetails.accountNumber)],
-          ["Payment method", state.bankDetails.paymentMethod],
-        ],
-      ],
-      [
-        "Preferences",
-        "/onboarding/preferences",
-        [
-          ["Accent color", state.preferences.accentColor],
-          ["Invoice template", state.preferences.invoiceTemplate],
-          [
-            "Payment link",
-            state.bankDetails.generatePaymentLink ? "Enabled" : "Disabled",
-          ],
+          ["NRS Business ID (Test)", state.taxProfile.nrsBusinessIdTest],
+          ["NRS Business ID (Live)", state.taxProfile.nrsBusinessIdLive],
+          ["NRS Entity ID", state.taxProfile.nrsEntityId],
+          ["API key", state.taxProfile.nrsApiKey],
         ],
       ],
     ],
@@ -1886,13 +2016,17 @@ export function ReviewPage() {
         company_name:
           state.businessDetails.businessName || state.signup.companyName,
         trading_name: state.businessDetails.tradingName,
+        business_description:
+          state.businessDetails.businessDescription || undefined,
+        company_size: state.businessDetails.companySize || undefined,
+        annual_turnover: state.businessDetails.annualTurnover || undefined,
         business_email:
           state.businessDetails.businessEmail || state.signup.workEmail,
         business_phone:
           state.businessDetails.phoneNumber || state.signup.phoneNumber,
         tax_identification_number:
           state.taxProfile.tin || state.businessDetails.taxId,
-        rc_number: state.taxProfile.cacNumber || state.businessDetails.taxId,
+        rc_number: state.businessDetails.rcNumber || undefined,
         business_type: state.businessDetails.businessType,
         address: state.businessDetails.businessAddress,
         city: state.businessDetails.city,
@@ -1900,7 +2034,8 @@ export function ReviewPage() {
         country: state.businessDetails.country || "Nigeria",
         lga: state.businessDetails.lga,
         postal_code: state.businessDetails.postalCode,
-        nrs_businessid: state.taxProfile.nrsBusinessId,
+        nrs_businessid_test: state.taxProfile.nrsBusinessIdTest || undefined,
+        nrs_businessid_live: state.taxProfile.nrsBusinessIdLive || undefined,
         nrs_apikey: state.taxProfile.nrsApiKey,
         nrs_apisecret: state.taxProfile.nrsApiSecret,
         nrs_entityid: state.taxProfile.nrsEntityId,
@@ -1912,10 +2047,11 @@ export function ReviewPage() {
         currentStep: "complete",
         preferences: { confirmedAccuracy: confirmed },
       });
-      router.push("/dashboard");
+      await fetch("/api/auth/session", { method: "DELETE" });
+      router.replace("/login?onboarding=complete");
     } catch (requestError) {
       setError(
-        getApiErrorMessage(requestError, "Unable to submit KYC details."),
+        getApiErrorMessage(requestError, "Unable to complete your setup."),
       );
     } finally {
       setSubmitting(false);
@@ -1926,7 +2062,7 @@ export function ReviewPage() {
     <AuthOnboardingLayout kind="review">
       <form onSubmit={submit} className="mx-auto max-w-6xl py-8">
         <ProgressHeader
-          step="STEP 5 OF 5"
+          step="STEP 3 OF 3"
           title="Review your setup"
           percent={100}
         />
@@ -1963,7 +2099,29 @@ export function ReviewPage() {
             </article>
           ))}
         </div>
-        <label className="mt-8 flex gap-3 text-base font-semibold text-[#454557]">
+        {hasNrsDetails ? (
+          <section className="mt-8 rounded-2xl border border-[#B9C2FF] bg-[#EEF1FF] p-5 sm:p-6">
+            <h2 className="text-lg font-extrabold text-[#0001B1]">
+              One final FIRS/NRS setup step
+            </h2>
+            <p className="mt-2 leading-7 text-[#454557]">
+              Sign in to your FIRS MBS dashboard and select{" "}
+              <strong className="text-[#191C1E]">REDTECH LIMITED</strong> as
+              your Access Point Provider. Confirm below when this has been done.
+            </p>
+            <label className="mt-5 flex gap-3 font-semibold text-[#191C1E]">
+              <input
+                type="checkbox"
+                checked={redtechConfirmed}
+                onChange={(event) => setRedtechConfirmed(event.target.checked)}
+                className="mt-1 h-5 w-5"
+              />
+              I have selected Redtech as my Access Point Provider on the FIRS
+              MBS dashboard.
+            </label>
+          </section>
+        ) : null}
+        <label className="mt-6 flex gap-3 text-base font-semibold text-[#454557]">
           <input
             type="checkbox"
             checked={confirmed}
@@ -1977,9 +2135,11 @@ export function ReviewPage() {
           <p className="mt-4 text-sm font-semibold text-red-600">{error}</p>
         ) : null}
         <StepActions
-          backHref="/onboarding/preferences"
+          backHref="/onboarding/tax-profile"
           nextLabel={submitting ? "Submitting..." : "Complete Setup"}
-          disabled={!confirmed || submitting}
+          disabled={
+            !confirmed || (hasNrsDetails && !redtechConfirmed) || submitting
+          }
         />
       </form>
     </AuthOnboardingLayout>

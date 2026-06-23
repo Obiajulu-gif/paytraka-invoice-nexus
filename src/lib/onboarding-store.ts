@@ -18,7 +18,11 @@ export type BusinessDetailsData = {
   tradingName: string;
   businessType: string;
   industry: string;
+  businessDescription: string;
+  companySize: string;
+  annualTurnover: string;
   taxId: string;
+  rcNumber: string;
   contactPerson: string;
   businessEmail: string;
   city: string;
@@ -40,7 +44,8 @@ export type TaxProfileData = {
   environmentPreference: string;
   submissionPreference: string;
   providerPreference: string;
-  nrsBusinessId: string;
+  nrsBusinessIdTest: string;
+  nrsBusinessIdLive: string;
   nrsApiKey: string;
   nrsApiSecret: string;
   nrsEntityId: string;
@@ -104,7 +109,11 @@ export const defaultOnboardingState: OnboardingState = {
     tradingName: "",
     businessType: "Limited Liability Company",
     industry: "",
+    businessDescription: "",
+    companySize: "",
+    annualTurnover: "",
     taxId: "",
+    rcNumber: "",
     contactPerson: "",
     businessEmail: "",
     city: "Somolu",
@@ -125,7 +134,8 @@ export const defaultOnboardingState: OnboardingState = {
     environmentPreference: "Test/Sandbox first",
     submissionPreference: "Submit manually after review",
     providerPreference: "",
-    nrsBusinessId: "",
+    nrsBusinessIdTest: "",
+    nrsBusinessIdLive: "",
     nrsApiKey: "",
     nrsApiSecret: "",
     nrsEntityId: "",

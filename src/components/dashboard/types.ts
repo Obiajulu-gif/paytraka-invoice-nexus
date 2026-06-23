@@ -19,7 +19,7 @@ export type DashboardKind =
   | "compliance"
   | "compliance-submit"
   | "compliance-status"
-  | "kyc"
+  | "my-company"
   | "templates"
   | "subscription"
   | "support"

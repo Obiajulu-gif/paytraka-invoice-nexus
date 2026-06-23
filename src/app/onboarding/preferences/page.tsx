@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function Preferences() {
-  redirect("/dashboard/kyc");
+  redirect("/onboarding/review");
 }

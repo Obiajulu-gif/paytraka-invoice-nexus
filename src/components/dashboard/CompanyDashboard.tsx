@@ -40,7 +40,7 @@ const routeMap: Record<string, DashboardKind> = {
   "compliance/validate": "compliance",
   "compliance/submit": "compliance-submit",
   "compliance/status": "compliance-status",
-  kyc: "kyc",
+  "my-company": "my-company",
   templates: "templates",
   subscription: "subscription",
   support: "support",
@@ -88,7 +88,7 @@ function DashboardPage({ kind }: { kind: DashboardKind }) {
       return <SubmitCompliancePage />;
     case "compliance-status":
       return <SubmissionStatusPage />;
-    case "kyc":
+    case "my-company":
       return <KycPage />;
     case "templates":
       return <TemplatesPage />;

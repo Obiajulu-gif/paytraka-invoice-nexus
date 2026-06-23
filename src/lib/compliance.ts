@@ -8,7 +8,7 @@ export function customerComplianceIssues(customer?: Customer) {
   if (!customer.street_name && !customer.billing_address) issues.push("street name");
   if (!customer.city) issues.push("city");
   if (!customer.postal_code) issues.push("postal zone");
-  if (!customer.description) issues.push("description");
+  if (!customer.business_description) issues.push("description");
   if (!customer.phone1?.startsWith("+")) issues.push("telephone starting with +");
   if (!customer.tax_identification_number) issues.push("TIN");
   return issues;

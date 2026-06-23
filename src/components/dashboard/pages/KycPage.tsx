@@ -1,530 +1,655 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
 import {
   Building2,
-  CheckCircle2,
-  Landmark,
-  Save,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  EyeOff,
+  KeyRound,
+  LockKeyhole,
   ShieldCheck,
 } from "lucide-react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { getMe, login } from "@/lib/api/auth";
 import { getApiErrorMessage } from "@/lib/api/client";
-import { getMe } from "@/lib/api/auth";
-import { submitKyc } from "@/lib/api/companies";
 import {
-  BankDetailsData,
-  BusinessDetailsData,
-  getOnboardingState,
-  saveOnboardingState,
-} from "@/lib/onboarding-store";
+  getCompanyMode,
+  updateCompanyInformation,
+  updateCompanyMode,
+  updateFirsSettings,
+} from "@/lib/api/companies";
+import { AuthUser } from "@/types/api";
+import nigeriaStates from "nigeria-states-lgas/src/statesAndLocalGov.json";
 import {
   Button,
   Card,
-  ComplianceAlert,
+  LoadingSpinner,
   PageHeader,
-  StatusBadge,
   notifyDashboard,
 } from "../ui";
 
 const inputClass =
-  "h-11 w-full rounded-xl border border-[#C5C4DA] bg-white px-3 text-sm text-[#191C1E] outline-none transition placeholder:text-[#8D90A0] focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]";
-const selectClass = `${inputClass} appearance-none`;
-const textAreaClass =
-  "min-h-24 w-full rounded-xl border border-[#C5C4DA] bg-white px-3 py-3 text-sm text-[#191C1E] outline-none transition placeholder:text-[#8D90A0] focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD]";
+  "h-11 w-full rounded-xl border border-[#C5C4DA] bg-white px-3 text-sm text-[#191C1E] outline-none transition focus:border-[#1117E8] focus:ring-4 focus:ring-[#DADEFD] disabled:cursor-not-allowed disabled:bg-[#F1F4F8] disabled:text-[#757588]";
+
+type CompanyForm = {
+  companyName: string;
+  tradingName: string;
+  businessEmail: string;
+  businessPhone: string;
+  businessType: string;
+  taxId: string;
+  rcNumber: string;
+  city: string;
+  state: string;
+  country: string;
+  lga: string;
+  firsEnabled: 0 | 1;
+  mode: "demo" | "live";
+  nrsBusinessIdTest: string;
+  nrsBusinessIdLive: string;
+  nrsApiKey: string;
+  nrsApiSecret: string;
+  nrsEntityId: string;
+  nrsPublicKey: string;
+  nrsCertificate: string;
+};
+
+const emptyForm: CompanyForm = {
+  companyName: "",
+  tradingName: "",
+  businessEmail: "",
+  businessPhone: "",
+  businessType: "",
+  taxId: "",
+  rcNumber: "",
+  city: "",
+  state: "",
+  country: "Nigeria",
+  lga: "",
+  firsEnabled: 0,
+  mode: "demo",
+  nrsBusinessIdTest: "",
+  nrsBusinessIdLive: "",
+  nrsApiKey: "",
+  nrsApiSecret: "",
+  nrsEntityId: "",
+  nrsPublicKey: "",
+  nrsCertificate: "",
+};
+
+const credentialFields = [
+  ["nrsBusinessIdTest", "NRS Business ID — Test"],
+  ["nrsBusinessIdLive", "NRS Business ID — Live"],
+  ["nrsApiKey", "NRS API Key"],
+  ["nrsApiSecret", "NRS API Secret"],
+  ["nrsEntityId", "NRS Entity ID"],
+  ["nrsPublicKey", "NRS Public Key"],
+  ["nrsCertificate", "NRS Certificate"],
+] as const;
 
 function Field({
   label,
-  error,
   children,
 }: {
   label: string;
-  error?: string;
   children: React.ReactNode;
 }) {
   return (
-    <label className="block min-w-0 text-sm font-bold text-[#191C1E]">
+    <label className="block text-sm font-bold text-[#191C1E]">
       {label}
       <div className="mt-2">{children}</div>
-      {error ? (
-        <p className="mt-1 text-xs font-semibold text-red-600">{error}</p>
-      ) : null}
     </label>
   );
 }
 
 function Toggle({
   checked,
+  disabled,
   onChange,
-  label,
-  description,
+  onLabel,
+  offLabel,
 }: {
   checked: boolean;
+  disabled: boolean;
   onChange: (checked: boolean) => void;
-  label: string;
-  description: string;
+  onLabel: string;
+  offLabel: string;
 }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={() => onChange(!checked)}
-      className="flex w-full items-center justify-between gap-4 rounded-xl bg-[#F1F4F8] p-4 text-left"
+      className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition ${
+        checked
+          ? "border-[#1117E8] bg-[#EEF1FF]"
+          : "border-[#C5C4DA] bg-white"
+      } disabled:cursor-not-allowed disabled:opacity-70`}
     >
       <span>
-        <span className="block text-sm font-bold text-[#191C1E]">{label}</span>
-        <span className="mt-1 block text-xs text-[#454557]">{description}</span>
+        <span className="block font-bold text-[#191C1E]">
+          {checked ? onLabel : offLabel}
+        </span>
+        <span className="mt-1 block text-xs text-[#757588]">
+          {checked ? "Enabled (1)" : "Disabled (0)"}
+        </span>
       </span>
       <span
-        className={`relative h-6 w-11 shrink-0 rounded-full transition ${checked ? "bg-[#1117E8]" : "bg-[#D7DAE2]"}`}
+        className={`h-7 w-12 rounded-full p-1 transition ${
+          checked ? "bg-[#1117E8]" : "bg-[#C5C4DA]"
+        }`}
       >
         <span
-          className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${checked ? "left-6" : "left-1"}`}
+          className={`block h-5 w-5 rounded-full bg-white transition ${
+            checked ? "translate-x-5" : ""
+          }`}
         />
       </span>
     </button>
   );
 }
 
-const businessTypes = [
-  "Limited Liability Company",
-  "Business Name",
-  "Enterprise",
-  "Partnership",
-  "Non-profit",
-  "Government",
-];
-const industries = [
-  "Technology",
-  "Professional Services",
-  "Retail",
-  "Logistics",
-  "Manufacturing",
-  "Agriculture",
-  "Financial Services",
-  "Hospitality",
-];
-const states = [
-  "Lagos",
-  "Abuja FCT",
-  "Ogun",
-  "Oyo",
-  "Rivers",
-  "Kano",
-  "Kaduna",
-  "Enugu",
-  "Anambra",
-  "Delta",
-];
-const banks = [
-  "Access Bank",
-  "Zenith Bank",
-  "GTBank",
-  "First Bank",
-  "UBA",
-  "Stanbic IBTC",
-  "Fidelity Bank",
-  "Sterling Bank",
-  "Wema Bank",
-  "Opay",
-];
-function validateBusiness(data: BusinessDetailsData) {
-  const errors: Record<string, string> = {};
-  (
-    [
-      "businessName",
-      "businessType",
-      "industry",
-      "taxId",
-      "contactPerson",
-      "businessEmail",
-      "phoneNumber",
-      "businessAddress",
-      "city",
-      "state",
-      "country",
-    ] as Array<keyof BusinessDetailsData>
-  ).forEach((key) => {
-    if (!String(data[key] ?? "").trim()) errors[key] = "Required";
-  });
-  if (
-    data.businessEmail &&
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.businessEmail)
-  )
-    errors.businessEmail = "Enter a valid email";
-  return errors;
+function profileToForm(user: AuthUser, mode: "demo" | "live"): CompanyForm {
+  return {
+    companyName: user.reg_company_name || user.company_name || "",
+    tradingName: user.reg_trading_name || user.trading_name || "",
+    businessEmail: user.business_email || user.email,
+    businessPhone: user.business_phone || user.phone || "",
+    businessType: user.business_type || "",
+    taxId: user.tax_identification_number || "",
+    rcNumber: user.rc_number || "",
+    city: user.city || "",
+    state: user.state || "",
+    country: user.country || "Nigeria",
+    lga: user.lga || "",
+    firsEnabled: user.firs_enabled ? 1 : 0,
+    mode,
+    nrsBusinessIdTest: user.nrs_businessid_test || "",
+    nrsBusinessIdLive: user.nrs_businessid_live || "",
+    nrsApiKey: user.nrs_apikey || "",
+    nrsApiSecret: user.nrs_apisecret || "",
+    nrsEntityId: user.nrs_entityid || "",
+    nrsPublicKey: user.nrs_publickey || "",
+    nrsCertificate: user.nrs_certificate || "",
+  };
 }
 
-function validateBank(data: BankDetailsData) {
-  const errors: Record<string, string> = {};
-  if (!data.bankName) errors.bankName = "Required";
-  if (!/^\d{10}$/.test(data.accountNumber))
-    errors.accountNumber = "Use a 10 digit account number";
-  if (!data.accountName.trim()) errors.accountName = "Required";
-  if (!data.paymentMethod.trim()) errors.paymentMethod = "Required";
-  return errors;
-}
-
-function SectionCard({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: React.ElementType;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Card className="p-5">
-      <div className="mb-5 flex items-center gap-3 border-b border-[#DCE0E8] pb-4">
-        <span className="rounded-lg bg-[#DADEFD] p-2 text-[#0001B1]">
-          <Icon className="h-5 w-5" />
-        </span>
-        <h2 className="text-base font-bold text-[#191C1E]">{title}</h2>
-      </div>
-      {children}
-    </Card>
-  );
-}
-
-export function KycPage() {
-  const [business, setBusiness] = useState<BusinessDetailsData>(
-    getOnboardingState().businessDetails,
-  );
-  const [bank, setBank] = useState<BankDetailsData>(
-    getOnboardingState().bankDetails,
-  );
-  const [businessErrors, setBusinessErrors] = useState<Record<string, string>>(
+export function MyCompanyPage() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [form, setForm] = useState<CompanyForm>(emptyForm);
+  const [original, setOriginal] = useState<CompanyForm>(emptyForm);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editUnlocked, setEditUnlocked] = useState(false);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [showCredentials, setShowCredentials] = useState(false);
+  const [visibleSecrets, setVisibleSecrets] = useState<Record<string, boolean>>(
     {},
   );
-  const [bankErrors, setBankErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [apiError, setApiError] = useState("");
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const state = getOnboardingState();
-    setBusiness({
-      ...state.businessDetails,
-      businessName:
-        state.businessDetails.businessName || state.signup.companyName,
-      tradingName:
-        state.businessDetails.tradingName || state.signup.tradingName,
-      businessEmail:
-        state.businessDetails.businessEmail || state.signup.workEmail,
-      phoneNumber:
-        state.businessDetails.phoneNumber || state.signup.phoneNumber,
-      contactPerson:
-        state.businessDetails.contactPerson ||
-        `${state.signup.firstName} ${state.signup.lastName}`.trim(),
-    });
-    setBank(state.bankDetails);
+    let cancelled = false;
+    async function load() {
+      try {
+        const me = await getMe();
+        const modeResponse = await getCompanyMode(me.data.company_id).catch(
+          () => null,
+        );
+        if (cancelled) return;
+        const next = profileToForm(
+          me.data,
+          modeResponse?.data.mode || me.data.mode || "demo",
+        );
+        setUser(me.data);
+        setForm(next);
+        setOriginal(next);
+      } catch (requestError) {
+        if (!cancelled)
+          setError(
+            getApiErrorMessage(
+              requestError,
+              "Unable to load company information.",
+            ),
+          );
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    const nextBusinessErrors = validateBusiness(business);
-    const nextBankErrors = validateBank(bank);
-    setBusinessErrors(nextBusinessErrors);
-    setBankErrors(nextBankErrors);
-    setApiError("");
-    if (
-      Object.keys(nextBusinessErrors).length ||
-      Object.keys(nextBankErrors).length
-    ) {
-      notifyDashboard("Complete the required KYC fields before saving");
-      return;
-    }
+  const hasMissingCredentials = useMemo(
+    () => credentialFields.some(([key]) => !original[key]),
+    [original],
+  );
+  const stateOptions = nigeriaStates.map((item) =>
+    item.state === "Federal Capital Territory"
+      ? "FCT Abuja"
+      : item.state === "Nassarawa"
+        ? "Nasarawa"
+        : item.state,
+  );
+  const selectedStateName =
+    form.state === "FCT Abuja"
+      ? "Federal Capital Territory"
+      : form.state === "Nasarawa"
+        ? "Nassarawa"
+        : form.state;
+  const lgaOptions =
+    nigeriaStates.find((item) => item.state === selectedStateName)?.lgas ?? [];
 
-    setSubmitting(true);
-    saveOnboardingState({ businessDetails: business, bankDetails: bank });
+  async function unlock(event: FormEvent) {
+    event.preventDefault();
+    if (!user || !password) return;
+    setVerifying(true);
+    setPasswordError("");
     try {
-      const me = await getMe();
-      await submitKyc(me.data.company_id, {
-        company_name: business.businessName,
-        trading_name: business.tradingName || undefined,
-        business_email: business.businessEmail,
-        business_phone: business.phoneNumber,
-        tax_identification_number: business.taxId,
-        rc_number: business.taxId,
-        business_type: business.businessType,
-        address: business.businessAddress,
-        city: business.city,
-        state: business.state,
-        country: business.country || "Nigeria",
-        lga: business.lga || undefined,
-        postal_code: business.postalCode || undefined,
-      });
-      notifyDashboard("KYC details saved successfully");
-    } catch (error) {
-      setApiError(
-        getApiErrorMessage(
-          error,
-          "KYC details were saved locally, but could not sync to the API.",
-        ),
+      await login(user.email, password);
+      setEditUnlocked(true);
+      setShowPasswordPrompt(false);
+      setPassword("");
+      notifyDashboard("Company information unlocked");
+    } catch (requestError) {
+      setPasswordError(
+        getApiErrorMessage(requestError, "The password is incorrect."),
       );
     } finally {
-      setSubmitting(false);
+      setVerifying(false);
     }
   }
 
+  async function save() {
+    if (!user) return;
+    setSaving(true);
+    setError("");
+    try {
+      await Promise.all([
+        updateCompanyInformation(user.company_id, {
+          trading_name: form.tradingName || undefined,
+          business_phone: form.businessPhone,
+          city: form.city,
+          state: form.state,
+          country: form.country,
+          lga: form.lga,
+          nrs_businessid_test: form.nrsBusinessIdTest || undefined,
+          nrs_businessid_live: form.nrsBusinessIdLive || undefined,
+          nrs_apikey: form.nrsApiKey || undefined,
+          nrs_apisecret: form.nrsApiSecret || undefined,
+          nrs_entityid: form.nrsEntityId || undefined,
+          nrs_publickey: form.nrsPublicKey || undefined,
+          nrs_certificate: form.nrsCertificate || undefined,
+        }),
+        updateFirsSettings(user.company_id, {
+          firs_enabled: form.firsEnabled,
+        }),
+        updateCompanyMode(user.company_id, { mode: form.mode }),
+      ]);
+      setOriginal(form);
+      setEditUnlocked(false);
+      notifyDashboard("Company information updated successfully");
+    } catch (requestError) {
+      setError(
+        getApiErrorMessage(
+          requestError,
+          "Unable to update company information.",
+        ),
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading)
+    return (
+      <div className="flex min-h-72 items-center justify-center">
+        <LoadingSpinner label="Loading company information" />
+      </div>
+    );
+
   return (
-    <form onSubmit={submit} className="mx-auto max-w-7xl">
+    <div className="mx-auto max-w-6xl">
       <PageHeader
-        title="KYC"
-        subtitle="Complete business and bank details inside your dashboard. These details support invoice validation and FIRS/NRS submission preparation."
-        action={
-          <Button type="submit" disabled={submitting}>
-            <Save className="h-4 w-4" />
-            {submitting ? "Saving..." : "Save KYC"}
-          </Button>
-        }
+        title="My Company"
+        subtitle="Review your registered company profile, FIRS configuration, and NRS integration credentials."
       />
 
-      <ComplianceAlert
-        title="KYC now lives in the dashboard"
-        text="Signup no longer blocks users with onboarding. Complete or update your readiness profile here when your workspace details are available."
-        tone="primary"
-        badge="Dashboard KYC"
-      />
-      {apiError ? (
-        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">
-          {apiError}
+      {error ? (
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+          {error}
         </div>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="min-w-0 space-y-6">
-          <SectionCard icon={Building2} title="Business Details">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Business Name" error={businessErrors.businessName}>
-                <input
-                  className={inputClass}
-                  value={business.businessName}
-                  onChange={(event) =>
-                    setBusiness({
-                      ...business,
-                      businessName: event.target.value,
-                    })
-                  }
-                />
-              </Field>
-              <Field label="Trading Name">
-                <input
-                  className={inputClass}
-                  value={business.tradingName}
-                  onChange={(event) =>
-                    setBusiness({
-                      ...business,
-                      tradingName: event.target.value,
-                    })
-                  }
-                />
-              </Field>
-              <Field label="Business Type" error={businessErrors.businessType}>
-                <select
-                  className={selectClass}
-                  value={business.businessType}
-                  onChange={(event) =>
-                    setBusiness({
-                      ...business,
-                      businessType: event.target.value,
-                    })
-                  }
-                >
-                  {businessTypes.map((item) => (
-                    <option key={item}>{item}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Industry" error={businessErrors.industry}>
-                <select
-                  className={selectClass}
-                  value={business.industry}
-                  onChange={(event) =>
-                    setBusiness({ ...business, industry: event.target.value })
-                  }
-                >
-                  <option value="">Select industry</option>
-                  {industries.map((item) => (
-                    <option key={item}>{item}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="TIN / RC Number" error={businessErrors.taxId}>
-                <input
-                  className={inputClass}
-                  value={business.taxId}
-                  onChange={(event) =>
-                    setBusiness({ ...business, taxId: event.target.value })
-                  }
-                  placeholder="12345678-0001"
-                />
-              </Field>
+      <div className="space-y-6">
+        <Card className="p-5 sm:p-6">
+          <div className="mb-6 flex items-center gap-3 border-b border-[#DCE0E8] pb-4">
+            <Building2 className="h-5 w-5 text-[#0001B1]" />
+            <h2 className="text-lg font-extrabold">Company information</h2>
+            {!editUnlocked ? (
+              <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-[#F1F4F8] px-3 py-1 text-xs font-bold text-[#757588]">
+                <LockKeyhole className="h-3.5 w-3.5" /> Read only
+              </span>
+            ) : null}
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="Company Name">
+              <input
+                className={inputClass}
+                value={form.companyName}
+                disabled
+              />
+            </Field>
+            <Field label="Business Email">
+              <input
+                className={inputClass}
+                value={form.businessEmail}
+                disabled
+              />
+            </Field>
+            <Field label="Business Type">
+              <input
+                className={inputClass}
+                value={form.businessType}
+                disabled
+              />
+            </Field>
+            <Field label="Trading Name">
+              <input
+                className={inputClass}
+                value={form.tradingName}
+                disabled={!editUnlocked}
+                onChange={(event) =>
+                  setForm({ ...form, tradingName: event.target.value })
+                }
+              />
+            </Field>
+            <Field label="Business Phone">
+              <input
+                className={inputClass}
+                value={form.businessPhone}
+                disabled={!editUnlocked}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    businessPhone: event.target.value
+                      .replace(/\D/g, "")
+                      .slice(0, 13),
+                  })
+                }
+              />
+            </Field>
+            <Field label="Tax Identification Number">
+              <input
+                className={inputClass}
+                value={form.taxId}
+                disabled
+              />
+            </Field>
+            <Field label="CAC / RC Number">
+              <input
+                className={inputClass}
+                value={form.rcNumber}
+                disabled
+              />
+            </Field>
+            <Field label="City">
+              <input
+                className={inputClass}
+                value={form.city}
+                disabled={!editUnlocked}
+                onChange={(event) =>
+                  setForm({ ...form, city: event.target.value })
+                }
+              />
+            </Field>
+            <Field label="State">
+              <select
+                className={inputClass}
+                value={form.state}
+                disabled={!editUnlocked}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    state: event.target.value,
+                    lga: "",
+                  })
+                }
+              >
+                <option value="">Select state</option>
+                {stateOptions.map((state) => (
+                  <option key={state}>{state}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Local Government Area">
+              <select
+                className={inputClass}
+                value={form.lga}
+                disabled={!editUnlocked || !form.state}
+                onChange={(event) =>
+                  setForm({ ...form, lga: event.target.value })
+                }
+              >
+                <option value="">Select local government area</option>
+                {lgaOptions.map((lga) => (
+                  <option key={lga}>{lga}</option>
+                ))}
+              </select>
+            </Field>
+            {(["country"] as const).map((key) => (
               <Field
-                label="Contact Person"
-                error={businessErrors.contactPerson}
+                key={key}
+                label={key[0].toUpperCase() + key.slice(1)}
               >
                 <input
                   className={inputClass}
-                  value={business.contactPerson}
+                  value={form[key]}
+                  disabled={!editUnlocked}
                   onChange={(event) =>
-                    setBusiness({
-                      ...business,
-                      contactPerson: event.target.value,
-                    })
+                    setForm({ ...form, [key]: event.target.value })
                   }
                 />
               </Field>
-              <Field
-                label="Business Email"
-                error={businessErrors.businessEmail}
-              >
-                <input
-                  className={inputClass}
-                  value={business.businessEmail}
-                  onChange={(event) =>
-                    setBusiness({
-                      ...business,
-                      businessEmail: event.target.value,
-                    })
-                  }
-                />
-              </Field>
-              <Field label="Phone Number" error={businessErrors.phoneNumber}>
-                <input
-                  className={inputClass}
-                  value={business.phoneNumber}
-                  onChange={(event) =>
-                    setBusiness({
-                      ...business,
-                      phoneNumber: event.target.value,
-                    })
-                  }
-                />
-              </Field>
-              <Field label="State" error={businessErrors.state}>
-                <select
-                  className={selectClass}
-                  value={business.state}
-                  onChange={(event) =>
-                    setBusiness({ ...business, state: event.target.value })
-                  }
-                >
-                  {states.map((item) => (
-                    <option key={item}>{item}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="City" error={businessErrors.city}>
-                <input
-                  className={inputClass}
-                  value={business.city}
-                  onChange={(event) =>
-                    setBusiness({ ...business, city: event.target.value })
-                  }
-                />
-              </Field>
-              <Field label="LGA">
-                <input
-                  className={inputClass}
-                  value={business.lga}
-                  onChange={(event) =>
-                    setBusiness({ ...business, lga: event.target.value })
-                  }
-                />
-              </Field>
-              <Field label="Postal Code">
-                <input
-                  className={inputClass}
-                  value={business.postalCode}
-                  onChange={(event) =>
-                    setBusiness({ ...business, postalCode: event.target.value })
-                  }
-                />
-              </Field>
-              <Field label="Country" error={businessErrors.country}>
-                <input
-                  className={inputClass}
-                  value={business.country}
-                  onChange={(event) =>
-                    setBusiness({ ...business, country: event.target.value })
-                  }
-                />
-              </Field>
-              <div className="md:col-span-2">
-                <Field
-                  label="Business Address"
-                  error={businessErrors.businessAddress}
-                >
-                  <textarea
-                    className={textAreaClass}
-                    value={business.businessAddress}
-                    onChange={(event) =>
-                      setBusiness({
-                        ...business,
-                        businessAddress: event.target.value,
-                      })
-                    }
-                  />
-                </Field>
-              </div>
-            </div>
-          </SectionCard>
+            ))}
+          </div>
+        </Card>
 
-          {/* <SectionCard icon={Landmark} title="Bank Details">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Bank Name" error={bankErrors.bankName}><select className={selectClass} value={bank.bankName} onChange={(event) => setBank({ ...bank, bankName: event.target.value })}><option value="">Select bank</option>{banks.map((item) => <option key={item}>{item}</option>)}</select></Field>
-              <Field label="Account Number" error={bankErrors.accountNumber}><input className={inputClass} value={bank.accountNumber} onChange={(event) => setBank({ ...bank, accountNumber: event.target.value.replace(/\D/g, "").slice(0, 10) })} placeholder="0123456789" /></Field>
-              <Field label="Account Name" error={bankErrors.accountName}><input className={inputClass} value={bank.accountName} onChange={(event) => setBank({ ...bank, accountName: event.target.value })} /></Field>
-              <Field label="Payment Method" error={bankErrors.paymentMethod}><select className={selectClass} value={bank.paymentMethod} onChange={(event) => setBank({ ...bank, paymentMethod: event.target.value })}><option value="">Select payment method</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option><option value="cheque">Cheque</option><option value="cash">Cash</option></select></Field>
+        <Card className="p-5 sm:p-6">
+          <div className="mb-6 flex items-center gap-3 border-b border-[#DCE0E8] pb-4">
+            <ShieldCheck className="h-5 w-5 text-[#0001B1]" />
+            <h2 className="text-lg font-extrabold">FIRS settings</h2>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <Toggle
+              checked={form.firsEnabled === 1}
+              disabled={!editUnlocked}
+              onChange={(checked) =>
+                setForm({
+                  ...form,
+                  firsEnabled: checked ? 1 : 0,
+                  mode: checked ? form.mode : "demo",
+                })
+              }
+              onLabel="FIRS enabled"
+              offLabel="FIRS disabled"
+            />
+            <Toggle
+              checked={form.mode === "live"}
+              disabled={!editUnlocked || form.firsEnabled === 0}
+              onChange={(checked) =>
+                setForm({
+                  ...form,
+                  firsEnabled: checked ? 1 : form.firsEnabled,
+                  mode: checked ? "live" : "demo",
+                })
+              }
+              onLabel="FIRS mode: Live"
+              offLabel="FIRS mode: Demo"
+            />
+          </div>
+        </Card>
+
+        <Card className="overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowCredentials(!showCredentials)}
+            className="flex w-full items-center gap-3 p-5 text-left sm:p-6"
+          >
+            <KeyRound className="h-5 w-5 text-[#0001B1]" />
+            <span>
+              <span className="block text-lg font-extrabold">
+                FIRS/NRS credentials
+              </span>
+              <span className="mt-1 block text-sm text-[#757588]">
+                Existing values are protected. Missing credentials can be
+                supplied after password verification.
+              </span>
+            </span>
+            {hasMissingCredentials ? (
+              <span className="ml-auto mr-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">
+                Details missing
+              </span>
+            ) : null}
+            {showCredentials ? (
+              <ChevronUp className="h-5 w-5" />
+            ) : (
+              <ChevronDown className="h-5 w-5" />
+            )}
+          </button>
+
+          {showCredentials ? (
+            <div className="grid gap-5 border-t border-[#DCE0E8] p-5 md:grid-cols-2 sm:p-6">
+              {credentialFields.map(([key, label]) => {
+                const alreadyProvided = Boolean(original[key]);
+                const visible = Boolean(visibleSecrets[key]);
+                return (
+                  <Field key={key} label={label}>
+                    <div className="relative">
+                      {key === "nrsCertificate" ? (
+                        <textarea
+                          className={`${inputClass} h-28 py-3 pr-12`}
+                          value={
+                            alreadyProvided && !visible ? "••••••••••••" : form[key]
+                          }
+                          disabled={alreadyProvided || !editUnlocked}
+                          onChange={(event) =>
+                            setForm({ ...form, [key]: event.target.value })
+                          }
+                        />
+                      ) : (
+                        <input
+                          className={`${inputClass} pr-12`}
+                          type={visible ? "text" : "password"}
+                          value={form[key]}
+                          disabled={alreadyProvided || !editUnlocked}
+                          onChange={(event) =>
+                            setForm({ ...form, [key]: event.target.value })
+                          }
+                        />
+                      )}
+                      {alreadyProvided ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setVisibleSecrets({
+                              ...visibleSecrets,
+                              [key]: !visible,
+                            })
+                          }
+                          className="absolute right-3 top-3 text-[#757588]"
+                          aria-label={visible ? `Hide ${label}` : `View ${label}`}
+                        >
+                          {visible ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
+                        </button>
+                      ) : null}
+                    </div>
+                    <span className="mt-2 block text-xs font-semibold text-[#757588]">
+                      {alreadyProvided
+                        ? "Already provided — cannot be edited."
+                        : editUnlocked
+                          ? "Missing — enter a value to add it."
+                          : "Missing — unlock company information to add it."}
+                    </span>
+                  </Field>
+                );
+              })}
             </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <Toggle checked={bank.generatePaymentLink} onChange={(checked) => setBank({ ...bank, generatePaymentLink: checked })} label="Generate payment links" description="Attach secure links to new invoices by default." />
-              <Toggle checked={bank.displayBankDetails} onChange={(checked) => setBank({ ...bank, displayBankDetails: checked })} label="Display bank details" description="Show settlement details on invoice templates." />
-            </div>
-          </SectionCard> */}
+          ) : null}
+        </Card>
+
+        <div className="flex justify-end pb-8">
+          {editUnlocked ? (
+            <Button onClick={save} disabled={saving}>
+              {saving ? "Updating..." : "Save company information"}
+            </Button>
+          ) : (
+            <Button onClick={() => setShowPasswordPrompt(true)}>
+              Update company information
+            </Button>
+          )}
         </div>
-
-        <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
-          <Card className="p-5">
-            <div className="flex items-center gap-3">
-              <span className="rounded-xl bg-[#DADEFD] p-3 text-[#0001B1]">
-                <ShieldCheck className="h-5 w-5" />
-              </span>
-              <div>
-                <h2 className="text-base font-bold">Readiness Summary</h2>
-                <p className="text-xs text-[#454557]">Dashboard KYC profile</p>
-              </div>
-            </div>
-            <div className="mt-5 space-y-3 text-sm">
-              {[
-                ["Workspace", business.businessName || "Not provided"],
-                ["TIN", business.taxId || "Not provided"],
-                // ["Bank", bank.bankName || "Not provided"],
-                // ["Payment", bank.paymentMethod || "Not provided"],
-              ].map(([label, value]) => (
-                <div
-                  key={label}
-                  className="flex justify-between gap-4 border-b border-[#DCE0E8] pb-3"
-                >
-                  <span className="text-[#757588]">{label}</span>
-                  <span className="max-w-40 truncate text-right font-bold">
-                    {value}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-5 flex items-center justify-between rounded-xl bg-green-50 p-3 text-sm font-bold text-green-700">
-              <span className="inline-flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" /> Saved
-              </span>
-              <StatusBadge tone="primary">Editable</StatusBadge>
-            </div>
-          </Card>
-          <Button type="submit" className="w-full" disabled={submitting}>
-            <Save className="h-4 w-4" />
-            {submitting ? "Saving..." : "Save KYC"}
-          </Button>
-        </aside>
       </div>
-    </form>
+
+      {showPasswordPrompt ? (
+        <div className="fixed inset-0 z-[100] grid place-items-center bg-[#101322]/60 p-4 backdrop-blur-sm">
+          <form
+            onSubmit={unlock}
+            className="w-full max-w-md rounded-2xl border border-[#C5C4DA] bg-white p-6 shadow-2xl"
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#DADEFD] text-[#0001B1]">
+              <LockKeyhole className="h-6 w-6" />
+            </div>
+            <h2 className="mt-5 text-2xl font-extrabold">
+              Confirm your password
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#454557]">
+              Enter your account password to unlock company updates for this
+              session.
+            </p>
+            <input
+              autoFocus
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className={`${inputClass} mt-5`}
+              placeholder="Account password"
+            />
+            {passwordError ? (
+              <p className="mt-3 text-sm font-semibold text-red-600">
+                {passwordError}
+              </p>
+            ) : null}
+            <div className="mt-6 flex justify-end gap-3">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowPasswordPrompt(false);
+                  setPassword("");
+                  setPasswordError("");
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!password || verifying}>
+                {verifying ? "Verifying..." : "Unlock updates"}
+              </Button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+    </div>
   );
 }
+
+export const KycPage = MyCompanyPage;
