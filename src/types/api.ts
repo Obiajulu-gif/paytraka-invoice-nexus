@@ -40,10 +40,12 @@ export interface AuthUser {
   reg_company_name?: string;
   reg_trading_name?: string;
   business_type?: string;
+  business_description?: string | null;
   rc_number?: string | null;
   city?: string;
   state?: string;
   lga?: string;
+  postal_code?: string | null;
   mode?: "demo" | "live";
   nrs_businessid_test?: string | null;
   nrs_businessid_live?: string | null;
@@ -149,8 +151,6 @@ export type CompanyUpdateRequest = Partial<
     | "company_name"
     | "business_email"
     | "business_type"
-    | "tax_identification_number"
-    | "rc_number"
     | "address"
   >
 >;

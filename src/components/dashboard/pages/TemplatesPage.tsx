@@ -9,7 +9,8 @@ import { Button, Card, PageHeader, notifyDashboard } from "../ui";
 
 const sampleItems = [
   {
-    description: "Professional Consulting Service",
+    name: "Professional Consulting Service",
+    description: "Implementation support and monthly advisory retainer",
     quantity: 1,
     price: 150000,
     discount: 0,
@@ -278,9 +279,9 @@ function InvoiceDocument({
               <p className="text-xl font-black uppercase leading-tight">
                 {companyName}
               </p>
-              {/* <p className="mt-1 text-xs font-semibold text-[#66728A]">
+              <p className="mt-1 text-xs font-semibold text-[#66728A]">
                 Company Letterhead
-              </p> */}
+              </p>
             </div>
           )}
         </div>
@@ -352,7 +353,14 @@ function InvoiceDocument({
                   key={item.description}
                   className="border-b border-[#DCE0E8]"
                 >
-                  <td className="px-3 py-4 font-bold">{item.description}</td>
+                  <td className="px-3 py-4">
+                    <p className="font-bold">{item.name}</p>
+                    {item.description && item.description !== item.name ? (
+                      <p className="mt-1 text-[10px] leading-4 text-[#66728A] sm:text-[11px]">
+                        {item.description}
+                      </p>
+                    ) : null}
+                  </td>
                   <td className="px-3 py-4 text-center">{item.quantity}</td>
                   <td className="px-3 py-4 text-right">{money(item.price)}</td>
                   <td className="px-3 py-4 text-right">

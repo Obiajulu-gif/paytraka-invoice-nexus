@@ -594,7 +594,7 @@ function StepActions({
         disabled={disabled}
         className="inline-flex h-12 flex-1 items-center justify-center rounded-xl bg-[#1117E8] px-8 text-base font-bold text-white shadow-[0_16px_32px_rgba(17,23,232,0.2)] transition hover:bg-[#0001B1] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {disabled ? "Saving..." : nextLabel}
+        {disabled ? "Save" : nextLabel}
       </button>
     </div>
   );
@@ -1284,14 +1284,14 @@ export function BusinessDetailsPage() {
       "businessType",
       "industry",
       "businessDescription",
-      "taxId",
+      // "taxId",
       "contactPerson",
       "businessEmail",
       "city",
       "state",
       "country",
       "lga",
-      "postalCode",
+      // "postalCode",
       "phoneNumber",
       "businessAddress",
     ]);
@@ -1607,8 +1607,8 @@ export function TaxProfilePage() {
               <li>
                 Toggle between the <strong>Test</strong> and{" "}
                 <strong>Live</strong> environments. Copy the{" "}
-                <strong>Business ID</strong> shown in each environment into
-                the matching field below.
+                <strong>Business ID</strong> shown in each environment into the
+                matching field below.
               </li>
               <li>
                 Copy <strong>API Key</strong> into NRS API Key.

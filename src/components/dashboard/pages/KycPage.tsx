@@ -44,7 +44,9 @@ type CompanyForm = {
   state: string;
   country: string;
   lga: string;
+  postalCode: string;
   firsEnabled: 0 | 1;
+  business_description?: string;
   mode: "demo" | "live";
   nrsBusinessIdTest: string;
   nrsBusinessIdLive: string;
@@ -67,6 +69,8 @@ const emptyForm: CompanyForm = {
   state: "",
   country: "Nigeria",
   lga: "",
+  postalCode: "",
+  business_description: "",
   firsEnabled: 0,
   mode: "demo",
   nrsBusinessIdTest: "",
@@ -155,12 +159,14 @@ function profileToForm(user: AuthUser, mode: "demo" | "live"): CompanyForm {
     businessEmail: user.business_email || user.email,
     businessPhone: user.business_phone || user.phone || "",
     businessType: user.business_type || "",
+    business_description: user.business_description || "",
     taxId: user.tax_identification_number || "",
     rcNumber: user.rc_number || "",
     city: user.city || "",
     state: user.state || "",
     country: user.country || "Nigeria",
     lga: user.lga || "",
+    postalCode: user.postal_code || "",
     firsEnabled: user.firs_enabled ? 1 : 0,
     mode,
     nrsBusinessIdTest: user.nrs_businessid_test || "",
@@ -272,11 +278,15 @@ export function MyCompanyPage() {
       await Promise.all([
         updateCompanyInformation(user.company_id, {
           trading_name: form.tradingName || undefined,
+          business_description: form.business_description || undefined,
           business_phone: form.businessPhone,
+          tax_identification_number: form.taxId,
+          rc_number: form.rcNumber || undefined,
           city: form.city,
           state: form.state,
           country: form.country,
           lga: form.lga,
+          postal_code: form.postalCode || undefined,
           nrs_businessid_test: form.nrsBusinessIdTest || undefined,
           nrs_businessid_live: form.nrsBusinessIdLive || undefined,
           nrs_apikey: form.nrsApiKey || undefined,
@@ -380,10 +390,37 @@ export function MyCompanyPage() {
               />
             </Field>
             <Field label="Tax Identification Number">
-              <input className={inputClass} value={form.taxId} disabled />
+              <input
+                className={inputClass}
+                value={form.taxId}
+                disabled={!editUnlocked}
+                onChange={(event) =>
+                  setForm({ ...form, taxId: event.target.value })
+                }
+              />
             </Field>
             <Field label="CAC / RC Number">
-              <input className={inputClass} value={form.rcNumber} disabled />
+              <input
+                className={inputClass}
+                value={form.rcNumber}
+                disabled={!editUnlocked}
+                onChange={(event) =>
+                  setForm({ ...form, rcNumber: event.target.value })
+                }
+              />
+            </Field>
+            <Field label="Business Description">
+              <input
+                className={inputClass}
+                value={form.business_description}
+                disabled={!editUnlocked}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    business_description: event.target.value,
+                  })
+                }
+              />
             </Field>
             <Field label="City">
               <input
@@ -428,6 +465,16 @@ export function MyCompanyPage() {
                   <option key={lga}>{lga}</option>
                 ))}
               </select>
+            </Field>
+            <Field label="Postal Code">
+              <input
+                className={inputClass}
+                value={form.postalCode}
+                disabled={!editUnlocked}
+                onChange={(event) =>
+                  setForm({ ...form, postalCode: event.target.value })
+                }
+              />
             </Field>
             {(["country"] as const).map((key) => (
               <Field key={key} label={key[0].toUpperCase() + key.slice(1)}>
